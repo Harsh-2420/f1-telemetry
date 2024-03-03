@@ -236,19 +236,6 @@ func (event *F1ButtonEvent) Parse(data *bytes.Reader, eventDetails *F1EventDataD
 	event.f1EventDataDetails = eventDetails
 	binary.Read(data, binary.LittleEndian, &event.ButtonStatus)
 
-	// this is for testing only
-	switch event.ButtonStatus {
-	case BUTTON_DOWN:
-		Log.Println("DOWN")
-	case BUTTON_UP:
-		Log.Println("UP")
-	case BUTTON_LEFT:
-		Log.Println("LEFT")
-	case BUTTON_RIGHT:
-		Log.Println("RIGHT")
-	default:
-	}
-
 	return true
 }
 
@@ -291,7 +278,7 @@ func (carTelemetry *F1CarTelemetryData) Parse(data *bytes.Reader, carIndex uint8
 		clearLine := "\033[u\033[K"
 		fmt.Print(saveCursorPosition)
 		fmt.Print(clearLine)
-		fmt.Printf("S: %d T: %d | B: %d\r", carTelemetry.Speed, int(math.Round(float64(carTelemetry.Throttle*100))), int(math.Round(float64(carTelemetry.Brake*100))))
+		fmt.Printf("S: %d KM/H T: %d %% B: %d %%\r", carTelemetry.Speed, int(math.Round(float64(carTelemetry.Throttle*100))), int(math.Round(float64(carTelemetry.Brake*100))))
 	}
 
 	return true
