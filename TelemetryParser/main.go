@@ -1,38 +1,37 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net"
 	"os"
-	"unsafe"
 )
 
-func PrintStructSizes() {
-	fmt.Println("F1PacketHeader: ", unsafe.Sizeof(F1PacketHeader{}))
-}
+var Log *log.Logger
+
+const LOG_TO_FILE = false
 
 func main() {
+	InitLogger(LOG_TO_FILE)
+	Log = GetLogger()
 
-	// PrintStructSizes()
-	// return
 	port := ":20777"
 
 	// Resolve the UDP address
 	udpAddr, err := net.ResolveUDPAddr("udp", port)
 	if err != nil {
-		fmt.Println("Error resolving UDP address:", err)
+		Log.Println("Error resolving UDP address:", err)
 		os.Exit(1)
 	}
 
 	// Listen on the UDP address
 	conn, err := net.ListenUDP("udp", udpAddr)
 	if err != nil {
-		fmt.Println("Error listening on UDP:", err)
+		Log.Println("Error listening on UDP:", err)
 		os.Exit(1)
 	}
 	defer conn.Close()
 
-	fmt.Println("UDP server is listening on", port)
+	Log.Println("UDP server is listening on", port)
 
 	f1UdpClient := F1UdpClient{}
 	f1UdpClient.Init(conn)

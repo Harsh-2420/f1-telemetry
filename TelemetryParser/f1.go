@@ -3,17 +3,26 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"log"
 	"net"
 	"reflect"
 )
+
+const UDP_MAX_PACKET_SIZE = 4096
+const PROCESSING_BUFFER_SIZE = UDP_MAX_PACKET_SIZE * 8
+const F1_PACKET_HEADER_PACKED_SIZE = 29
+const F1_MAX_NUM_CARS = 22
 
 const (
 	PacketID_Motion uint8 = iota
 	PacketID_Session
 	PacketID_LapData
 	PacketID_Event
+	PacketID_Participants
+	PacketID_CarSetups
+	PacketID_CarTelemetry
 )
+
+var PACKET_ID_SIZE_MAP = []uint32{1349, 644, 1131, 45, 1306, 1107, 1352}
 
 type F1PacketHeader struct {
 	PacketFormat            uint16  // Version of the packet format, e.g., 2023
@@ -30,10 +39,8 @@ type F1PacketHeader struct {
 	SecondaryPlayerCarIndex uint8   // Index of secondary player's car in the array (splitscreen), 255 if no second player
 }
 
-const F1_PACKET_HEADER_PACKED_SIZE = 29
-
 type F1EventDataDetails struct {
-	F1PacketHeader
+	f1PacketHeader  *F1PacketHeader
 	EventStringCode [4]byte
 }
 
@@ -46,74 +53,157 @@ const (
 )
 
 type F1ButtonEvent struct {
-	F1EventDataDetails
-	ButtonStatus uint32 // Bit flags specifying which buttons are being pressed
+	f1EventDataDetails *F1EventDataDetails
+	ButtonStatus       uint32 // Bit flags specifying which buttons are being pressed
+}
+
+type F1CarMotionData struct {
+	WorldPositionX     float32 // World space X position - metres
+	WorldPositionY     float32 // World space Y position
+	WorldPositionZ     float32 // World space Z position
+	WorldVelocityX     float32 // Velocity in world space X – metres/s
+	WorldVelocityY     float32 // Velocity in world space Y
+	WorldVelocityZ     float32 // Velocity in world space Z
+	WorldForwardDirX   int16   // World space forward X direction (normalised)
+	WorldForwardDirY   int16   // World space forward Y direction (normalised)
+	WorldForwardDirZ   int16   // World space forward Z direction (normalised)
+	WorldRightDirX     int16   // World space right X direction (normalised)
+	WorldRightDirY     int16   // World space right Y direction (normalised)
+	WorldRightDirZ     int16   // World space right Z direction (normalised)
+	GForceLateral      float32 // Lateral G-Force component
+	GForceLongitudinal float32 // Longitudinal G-Force component
+	GForceVertical     float32 // Vertical G-Force component
+	Yaw                float32 // Yaw angle in radians
+	Pitch              float32 // Pitch angle in radians
+	Roll               float32 // Roll angle in radians
+}
+
+type F1CarMotionDataPacket struct {
+	f1PacketHeader *F1PacketHeader
+	CarMotionData  [F1_MAX_NUM_CARS]F1CarMotionData
+}
+
+type F1CarTelemetryData struct {
+	Speed                   uint16     // Speed of car in kilometres per hour
+	Throttle                float32    // Amount of throttle applied (0.0 to 1.0)
+	Steer                   float32    // Steering (-1.0 (full lock left) to 1.0 (full lock right))
+	Brake                   float32    // Amount of brake applied (0.0 to 1.0)
+	Clutch                  uint8      // Amount of clutch applied (0 to 100)
+	Gear                    int8       // Gear selected (1-8, N=0, R=-1)
+	EngineRPM               uint16     // Engine RPM
+	DRS                     uint8      // 0 = off, 1 = on
+	RevLightsPercent        uint8      // Rev lights indicator (percentage)
+	RevLightsBitValue       uint16     // Rev lights (bit 0 = leftmost LED, bit 14 = rightmost LED)
+	BrakesTemperature       [4]uint16  // Brakes temperature (celsius)
+	TyresSurfaceTemperature [4]uint8   // Tyres surface temperature (celsius)
+	TyresInnerTemperature   [4]uint8   // Tyres inner temperature (celsius)
+	EngineTemperature       uint16     // Engine temperature (celsius)
+	TyresPressure           [4]float32 // Tyres pressure (PSI)
+	SurfaceType             [4]uint8   // Driving surface, see appendices
+}
+
+type F1CarTelemetryDataPacket struct {
+	f1PacketHeader               *F1PacketHeader
+	CarTelemetryData             [F1_MAX_NUM_CARS]F1CarTelemetryData
+	MfdPanelIndex                uint8
+	MfdPanelIndexSecondaryPlayer uint8
+	SuggestedGear                int8
 }
 
 type F1UdpClient struct {
-	conn   *net.UDPConn
-	buffer []byte
+	conn             *net.UDPConn
+	readbuffer       []byte
+	processingbuffer []byte
+}
+
+func ParseStruct(reader *bytes.Reader, dstStruct any) bool {
+	v := reflect.ValueOf(dstStruct).Elem()
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		field := v.Field(i)
+		if !t.Field(i).IsExported() {
+			continue
+		}
+
+		if err := binary.Read(reader, binary.LittleEndian, field.Addr().Interface()); err != nil {
+			Log.Println("Error reading data into field:", err)
+			return false
+		}
+	}
+
+	return true
 }
 
 func (cl *F1UdpClient) Init(conn *net.UDPConn) {
 	cl.conn = conn
-	cl.buffer = make([]byte, 1024)
+	cl.readbuffer = make([]byte, UDP_MAX_PACKET_SIZE)
+	cl.processingbuffer = make([]byte, 0, PROCESSING_BUFFER_SIZE) // allow queuing of upto 8 packets in case processing takes time
 }
 
 func (cl *F1UdpClient) Poll() {
 	var packetHeader F1PacketHeader
-	n, _, err := cl.conn.ReadFromUDP(cl.buffer)
+	n, _, err := cl.conn.ReadFromUDP(cl.readbuffer)
 	if err != nil {
-		log.Println("Error reading from UDP:", err)
+		Log.Println("Error reading from UDP:", err)
 		return
 	}
 
-	// log.Printf("Read %d bytes\n", n)
-	if n > F1_PACKET_HEADER_PACKED_SIZE {
-		reader := bytes.NewReader(cl.buffer)
+	cl.processingbuffer = append(cl.processingbuffer, cl.readbuffer[:n]...)
+
+	if len(cl.processingbuffer) > F1_PACKET_HEADER_PACKED_SIZE {
+		shouldMoveReadHead := true
+		reader := bytes.NewReader(cl.processingbuffer)
 		packetHeader.Parse(reader)
 		switch packetHeader.PacketId {
+		case PacketID_Motion:
+			motiondata := F1CarMotionDataPacket{f1PacketHeader: &packetHeader}
+			if !motiondata.Parse(reader) {
+				Log.Panicln("Failed to parse car motion data, stopping")
+			}
 		case PacketID_Event:
 			eventDetails := F1EventDataDetails{}
 			if !eventDetails.Parse(reader, &packetHeader) {
-				log.Panicln("Failed to parse event details, stopping")
+				Log.Panicln("Failed to parse event details, stopping")
 			}
 			eventDetails.ProcessEvent(reader)
+
+		case PacketID_CarTelemetry:
+			cartelemetry := F1CarTelemetryDataPacket{f1PacketHeader: &packetHeader}
+			if !cartelemetry.Parse(reader) {
+				Log.Panicln("Failed to parse car telemetry packet, stopping")
+			}
 		default:
-			log.Panicln("not implemented")
+			// Log.Printf("not implemented packet type %d handling\n", packetHeader.PacketId)
+			shouldMoveReadHead = false
+			cl.processingbuffer = cl.processingbuffer[n:]
+		}
+
+		if shouldMoveReadHead {
+			cl.processingbuffer = cl.processingbuffer[PACKET_ID_SIZE_MAP[packetHeader.PacketId]:]
 		}
 	}
 }
 
 func (header *F1PacketHeader) Parse(data *bytes.Reader) bool {
 	if data.Len() < F1_PACKET_HEADER_PACKED_SIZE {
-		log.Printf("Can't parse header from buffer with %d bytes\n", data.Len())
+		Log.Printf("Can't parse header from buffer with %d bytes\n", data.Len())
 		return false
 	}
 
-	binary.Read(data, binary.LittleEndian, &header.PacketFormat)
-	binary.Read(data, binary.LittleEndian, &header.GameYear)
-	binary.Read(data, binary.LittleEndian, &header.GameMajorVersion)
-	binary.Read(data, binary.LittleEndian, &header.GameMinorVersion)
-	binary.Read(data, binary.LittleEndian, &header.PacketVersion)
-	binary.Read(data, binary.LittleEndian, &header.PacketId)
-	binary.Read(data, binary.LittleEndian, &header.SessionUID)
-	binary.Read(data, binary.LittleEndian, &header.SessionTime)
-	binary.Read(data, binary.LittleEndian, &header.FrameIdentifier)
-	binary.Read(data, binary.LittleEndian, &header.OverallFrameIdentifier)
-	binary.Read(data, binary.LittleEndian, &header.PlayerCarIndex)
-	binary.Read(data, binary.LittleEndian, &header.SecondaryPlayerCarIndex)
+	if !ParseStruct(data, header) {
+		return false
+	}
 
 	return true
 }
 
 func (details *F1EventDataDetails) Parse(data *bytes.Reader, packetHeader *F1PacketHeader) bool {
 	if data.Len() < len(details.EventStringCode) {
-		log.Printf("Can't parse EventStringCode, not enough data (%d bytes)\n", data.Len())
+		Log.Printf("Can't parse EventStringCode, not enough data (%d bytes)\n", data.Len())
 		return false
 	}
 
-	details.F1PacketHeader = *packetHeader
+	details.f1PacketHeader = packetHeader
 	binary.Read(data, binary.LittleEndian, &details.EventStringCode)
 	return true
 }
@@ -125,11 +215,11 @@ func (details *F1EventDataDetails) ProcessEvent(data *bytes.Reader) bool {
 	case "BUTN":
 		event := F1ButtonEvent{}
 		if !event.Parse(data, details) {
-			log.Panicln("Failed to process button event, stopping")
+			Log.Panicln("Failed to process button event, stopping")
 		}
 
 	default:
-		log.Panicln("not implemented")
+		Log.Printf("Event processing for '%s' not implemented\n", eventString)
 	}
 
 	return true
@@ -138,20 +228,99 @@ func (details *F1EventDataDetails) ProcessEvent(data *bytes.Reader) bool {
 func (event *F1ButtonEvent) Parse(data *bytes.Reader, eventDetails *F1EventDataDetails) bool {
 	bytesNeeded := reflect.TypeOf(event.ButtonStatus).Size()
 	if data.Len() < int(bytesNeeded) {
-		log.Printf("Can't parse ButtonStatus, not enough data (%d bytes)\n", data.Len())
+		Log.Printf("Can't parse ButtonStatus, not enough data (%d bytes)\n", data.Len())
 	}
 
+	event.f1EventDataDetails = eventDetails
 	binary.Read(data, binary.LittleEndian, &event.ButtonStatus)
+
+	// this is for testing only
 	switch event.ButtonStatus {
 	case BUTTON_DOWN:
-		log.Println("DOWN")
+		Log.Println("DOWN")
 	case BUTTON_UP:
-		log.Println("UP")
+		Log.Println("UP")
 	case BUTTON_LEFT:
-		log.Println("LEFT")
+		Log.Println("LEFT")
 	case BUTTON_RIGHT:
-		log.Println("RIGHT")
+		Log.Println("RIGHT")
 	default:
 	}
+
+	return true
+}
+
+func (motiondata *F1CarMotionData) Parse(data *bytes.Reader, carIndex uint8, header *F1PacketHeader) bool {
+	if !ParseStruct(data, motiondata) {
+		return false
+	}
+
+	// if header.PlayerCarIndex == carIndex {
+	// 	gForces := Vec3{motiondata.GForceLateral, motiondata.GForceLongitudinal, motiondata.GForceVertical}
+	// 	log.Printf("Lateral G: %1.f\n", gForces.X)
+	// }
+
+	return true
+}
+
+func (motiondataPacket *F1CarMotionDataPacket) Parse(data *bytes.Reader) bool {
+	if data.Len() < int(PACKET_ID_SIZE_MAP[motiondataPacket.f1PacketHeader.PacketId])-F1_PACKET_HEADER_PACKED_SIZE {
+		Log.Printf("Can't parse CarMotionDataPacket from buffer with %d bytes left\n", data.Len())
+		return false
+	}
+
+	for i := 0; i < len(motiondataPacket.CarMotionData); i++ {
+		if !motiondataPacket.CarMotionData[i].Parse(data, uint8(i), motiondataPacket.f1PacketHeader) {
+			Log.Printf("Failed to parse CarMotionData from buffer with %d bytes left\n", data.Len())
+			return false
+		}
+	}
+
+	return true
+}
+
+func (carTelemetry *F1CarTelemetryData) Parse(data *bytes.Reader, carIndex uint8, header *F1PacketHeader) bool {
+	if !ParseStruct(data, carTelemetry) {
+		return false
+	}
+
+	if header.PlayerCarIndex == carIndex {
+		Log.Printf("S: %d T: %.1f | B: %.1f\n", carTelemetry.Speed, carTelemetry.Throttle, carTelemetry.Brake)
+	}
+
+	return true
+}
+
+func (carTelemetryPacket *F1CarTelemetryDataPacket) Parse(data *bytes.Reader) bool {
+	if data.Len() < int(PACKET_ID_SIZE_MAP[carTelemetryPacket.f1PacketHeader.PacketId])-F1_PACKET_HEADER_PACKED_SIZE {
+		Log.Printf("Can't parse F1CarTelemetryDataPacket from buffer with %d bytes left\n", data.Len())
+		return false
+	}
+
+	for i := 0; i < len(carTelemetryPacket.CarTelemetryData); i++ {
+		if !carTelemetryPacket.CarTelemetryData[i].Parse(data, uint8(i), carTelemetryPacket.f1PacketHeader) {
+			Log.Printf("Failed to parse CarTelemetryData from buffer with %d bytes left\n", data.Len())
+			return false
+		}
+	}
+
+	err := binary.Read(data, binary.LittleEndian, &carTelemetryPacket.MfdPanelIndex)
+	if err != nil {
+		Log.Println("Failed to parse MfdPanelIndex")
+		return false
+	}
+
+	err = binary.Read(data, binary.LittleEndian, &carTelemetryPacket.MfdPanelIndexSecondaryPlayer)
+	if err != nil {
+		Log.Println("Failed to parse MfdPanelIndexSecondaryPlayer")
+		return false
+	}
+
+	err = binary.Read(data, binary.LittleEndian, &carTelemetryPacket.SuggestedGear)
+	if err != nil {
+		Log.Println("Failed to parse SuggestedGear")
+		return false
+	}
+
 	return true
 }
