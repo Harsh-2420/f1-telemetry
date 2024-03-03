@@ -209,7 +209,7 @@ export const TyreChart = ({ tireData }) => {
                 </text>
 
                 {/* Rear Right tire */}
-                {/* {console.log(glowInterpolatedColor.frontLeft)} */}
+                {console.log(glowInterpolatedColor.rearLeft)}
                 <circle
                     cx={300}
                     cy={300}
