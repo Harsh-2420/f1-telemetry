@@ -10,6 +10,8 @@ import { TyreChart } from "../Components/TyreChart"
 
 import "bootstrap/dist/css/bootstrap.min.css"
 import { dummyTelemetryData } from "../Data/telemetryData"
+import arrow2 from "../images/arrow2.jpg"
+import car2 from "../images/car2.jpg"
 
 export const Telemetry = () => {
     const [selectedSession, setSelectedSession] = useState("Race")
@@ -40,8 +42,21 @@ export const Telemetry = () => {
                 background: "black",
                 fontFamily: "Futura",
                 color: "white",
+                position: "relative", // Make sure the parent div has a position to accommodate the absolutely positioned div
             }}
         >
+            <div
+                style={{
+                    backgroundImage: `url(${arrow2})`,
+                    opacity: "0.1",
+                    position: "absolute", // Set position to absolute
+                    top: 0,
+                    left: 0,
+                    width: "100%", // Set width to 100%
+                    height: "100%", // Set height to 100%
+                }}
+            ></div>
+
             <div style={{ padding: "30px" }}>
                 <Row>
                     <Col xs="auto">
@@ -150,7 +165,6 @@ export const Telemetry = () => {
                     )}
                 </Col>
                 <Col>
-                    <h2>Tyre Information</h2>
                     {telemetryData ? (
                         <>
                             <TyreChart tireData={telemetryData} />

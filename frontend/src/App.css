@@ -36,3 +36,36 @@
         transform: rotate(360deg);
     }
 }
+/* ------------------------------------------------ */
+/* GENERAL */
+
+.background-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("./images/arrow2.jpg"); /* Replace 'your-pattern-image.jpg' with the URL of your pattern image */
+    opacity: 0.1; /* Adjust opacity as needed */
+    pointer-events: none; /* Ensures the background pattern doesn't interfere with mouse interactions */
+}
+/* ------------------------------------------------ */
+/* TYRE INFORMATION */
+
+.h3-container-tyre {
+    display: flex;
+    align-items: center;
+}
+
+.tyre-compound-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: transparent;
+    border: 2px solid #d83131;
+    color: #d83131;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px; /* Adjust as needed */
+}
