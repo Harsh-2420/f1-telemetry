@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
+	"math"
 	"net"
 	"reflect"
 )
@@ -285,7 +287,11 @@ func (carTelemetry *F1CarTelemetryData) Parse(data *bytes.Reader, carIndex uint8
 	}
 
 	if header.PlayerCarIndex == carIndex {
-		Log.Printf("S: %d T: %.1f | B: %.1f\n", carTelemetry.Speed, carTelemetry.Throttle, carTelemetry.Brake)
+		saveCursorPosition := "\033[s"
+		clearLine := "\033[u\033[K"
+		fmt.Print(saveCursorPosition)
+		fmt.Print(clearLine)
+		fmt.Printf("S: %d T: %d | B: %d\r", carTelemetry.Speed, int(math.Round(float64(carTelemetry.Throttle*100))), int(math.Round(float64(carTelemetry.Brake*100))))
 	}
 
 	return true
