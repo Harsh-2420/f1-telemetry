@@ -50,6 +50,23 @@
     pointer-events: none; /* Ensures the background pattern doesn't interfere with mouse interactions */
 }
 /* ------------------------------------------------ */
+/* TELEMETRY PAGE HEADER COMPONENTS */
+
+#live-data-toggle {
+    background-color: #d57048;
+    border: none;
+    border-radius: 75px;
+    width: 12vw;
+    height: 5vh;
+    transition: background-color 0.3s ease;
+    color: #ffffff;
+}
+
+#live-data-toggle:hover {
+    background-color: #b15632;
+}
+
+/* ------------------------------------------------ */
 /* TYRE INFORMATION */
 
 .h3-container-tyre {

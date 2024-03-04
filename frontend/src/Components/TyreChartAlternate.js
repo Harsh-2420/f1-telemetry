@@ -76,7 +76,7 @@ const calculateGlowColor = (temperature) => {
         .hex()
 }
 
-export const TyreChart = ({ tireData }) => {
+export const TyreChartAlternate = ({ tireData }) => {
     // Get the latest tire data
     const latestTire = tireData[tireData.length - 1]
     if (!latestTire) return null // Handle case when tireData is empty or undefined
@@ -146,23 +146,52 @@ export const TyreChart = ({ tireData }) => {
     )
 }
 
-// Function to render a single tire shape
 const renderTire = (x, y, width, height, margin, wear, temperature) => {
-    const wearColor = calculateBackgroundColor(wear)
     const rimColor = calculateGlowColor(temperature)
+    const barWidth = 20 // Width of the wear bar
+    const barHeight = height // Height of the wear bar, same as tire height
+    const barX = x + width / 2 + margin // X-coordinate of the wear bar
+    const barY = y - height / 2 // Y-coordinate of the wear bar
+    const wearHeight = (height * wear) / 100 // Height of the worn part of the bar
 
     return (
         <g key={`${x}-${y}`}>
-            {/* Inner rectangle (tire) */}
+            {/* Outermost rectangle (outer rim) */}
+            <rect
+                x={x - width / 2 - margin - 2} // Adjusted for the outermost outline
+                y={y - height / 2 - margin - 2} // Adjusted for the outermost outline
+                width={width + 2 * margin + 4} // Adjusted for the outermost outline
+                height={height + 2 * margin + 4} // Adjusted for the outermost outline
+                fill="none"
+                stroke="#FAF9F6" // White outline
+                strokeWidth={1} // Adjusted for the outermost outline
+                rx={(height + 2 * margin + 4) / 4} // Reduce the roundness slightly for outermost outline
+                ry={(height + 2 * margin + 4) / 4} // Reduce the roundness slightly for outermost outline
+                transform={`rotate(90 ${x} ${y})`} // Rotate the outermost outline by 90 degrees around its center
+            />
+
+            {/* Inner rectangle (inner rim) */}
+            <rect
+                x={x - width / 2 - margin} // Adjusted for the inner outline
+                y={y - height / 2 - margin} // Adjusted for the inner outline
+                width={width + 2 * margin} // Adjusted for the inner outline
+                height={height + 2 * margin} // Adjusted for the inner outline
+                fill="none"
+                stroke="#FAF9F6" // White outline
+                strokeWidth={5} // Adjusted for the inner outline
+                rx={(height + 2 * margin) / 4} // Reduce the roundness slightly for inner outline
+                ry={(height + 2 * margin) / 4} // Reduce the roundness slightly for inner outline
+                transform={`rotate(90 ${x} ${y})`} // Rotate the inner outline by 90 degrees around its center
+            />
+
+            {/* Middle rectangle (tire) */}
             <rect
                 x={x - width / 2}
                 y={y - height / 2}
                 width={width}
                 height={height}
-                fill={wearColor}
-                rx={height / 2}
-                ry={height / 2}
-                stroke="none"
+                fill="none" // Remove inner color
+                stroke="none" // Remove inner stroke
                 transform={`rotate(90 ${x} ${y})`} // Rotate the tire by 90 degrees around its center
             />
             <text
@@ -184,9 +213,9 @@ const renderTire = (x, y, width, height, margin, wear, temperature) => {
                 height={height + 2 * margin}
                 fill="none"
                 stroke={rimColor}
-                strokeWidth={3}
-                rx={(height + 2 * margin) / 2}
-                ry={(height + 2 * margin) / 2}
+                strokeWidth={4}
+                rx={(height + 2 * margin) / 4} // Reduce the roundness slightly
+                ry={(height + 2 * margin) / 4} // Reduce the roundness slightly
                 transform={`rotate(90 ${x} ${y})`} // Rotate the rim by 90 degrees around its center
             />
         </g>
