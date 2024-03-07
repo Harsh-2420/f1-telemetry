@@ -152,7 +152,14 @@ export const SplitColorChart = ({
 
     return (
         <>
-            <h4 style={{ padding: "1%", marginLeft: "4%" }}>{titleLabel}</h4>
+            <h4
+                style={{
+                    padding: "1%",
+                    marginLeft: "4%",
+                }}
+            >
+                {titleLabel}
+            </h4>
             <ResponsiveContainer width="60%" height={400}>
                 <LineChart
                     data={data}

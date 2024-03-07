@@ -7,6 +7,8 @@ import {
     TotalTelemetryChart,
 } from "../Components/ChartComponents"
 import { TyreChart } from "../Components/TyreChart"
+import { LiveData } from "./LiveData"
+import { Analysis } from "./Analysis"
 
 import "bootstrap/dist/css/bootstrap.min.css"
 import { dummyTelemetryData } from "../Data/telemetryData"
@@ -42,10 +44,10 @@ export const Telemetry = () => {
                 background: "black",
                 fontFamily: "Futura",
                 color: "white",
-                position: "relative", // Make sure the parent div has a position to accommodate the absolutely positioned div
+                position: "relative",
             }}
         >
-            <div
+            {/* <div
                 style={{
                     backgroundImage: `url(${arrow2})`,
                     opacity: "0.1",
@@ -54,12 +56,12 @@ export const Telemetry = () => {
                     left: 0,
                     width: "100%", // Set width to 100%
                     height: "100%", // Set height to 100%
+                    // zIndex: "0",
                 }}
-            ></div>
-
+            ></div> */}
             <div style={{ padding: "30px" }}>
-                <Row>
-                    <Col xs="auto">
+                <Row className="align-items-center" style={{}}>
+                    <Col xs="auto" style={{}}>
                         <DropdownComponent
                             label="Session:"
                             options={dummyTelemetryData.sessions}
@@ -83,97 +85,29 @@ export const Telemetry = () => {
                             onSelect={setSelectedLap}
                         />
                     </Col>
-                    <Col xs="auto">
+                    <Col
+                        style={{
+                            textAlign: "right",
+                        }}
+                    >
                         <Button
+                            id="live-data-toggle"
                             onClick={toggleCombinedTelemetry}
-                            style={{
-                                backgroundColor: "#1a5d57",
-                                border: "#1a5d57",
-                                marginTop: "12%",
-                            }}
                         >
-                            {combinedTelemetryToggle
-                                ? "Toggle Telemetry"
-                                : "Toggle Telemetry"}
+                            {combinedTelemetryToggle ? "Live Data" : "Analysis"}
                         </Button>
                     </Col>
                 </Row>
             </div>
-
-            <Row>
-                <Col>
-                    {combinedTelemetryToggle ? (
-                        <div>
-                            <TotalTelemetryChart
-                                data={telemetryData}
-                                syncId="telemetryCharts"
-                                onMouseMove={handleCursorMove}
-                                throttleKey="throttle"
-                                brakeKey="brake"
-                                titleLabel="Telemetry v Distance"
-                            />
-                        </div>
-                    ) : (
-                        <>
-                            <div>
-                                <Chart
-                                    data={telemetryData}
-                                    syncId="telemetryCharts"
-                                    onMouseMove={handleCursorMove}
-                                    dataKey="speed"
-                                    titleLabel="Speed v Distance"
-                                />
-                            </div>
-                            <div>
-                                <Chart
-                                    data={telemetryData}
-                                    syncId="telemetryCharts"
-                                    onMouseMove={handleCursorMove}
-                                    dataKey="throttle"
-                                    titleLabel="Throttle Input v Distance"
-                                />
-                            </div>
-                            <div>
-                                <Chart
-                                    data={telemetryData}
-                                    syncId="telemetryCharts"
-                                    onMouseMove={handleCursorMove}
-                                    dataKey="brake"
-                                    dataKeyTemp="brakeTemperature"
-                                    titleLabel="Brake v Distance"
-                                />
-                            </div>
-                            <div>
-                                <Chart
-                                    data={telemetryData}
-                                    syncId="telemetryCharts"
-                                    onMouseMove={handleCursorMove}
-                                    dataKey="gear"
-                                    titleLabel="Gear v Distance"
-                                />
-                            </div>
-                            <div>
-                                <Chart
-                                    data={telemetryData}
-                                    syncId="telemetryCharts"
-                                    onMouseMove={handleCursorMove}
-                                    dataKey="steering"
-                                    titleLabel="Steering v Distance"
-                                />
-                            </div>
-                        </>
-                    )}
-                </Col>
-                <Col>
-                    {telemetryData ? (
-                        <>
-                            <TyreChart tireData={telemetryData} />
-                        </>
-                    ) : (
-                        <></>
-                    )}
-                </Col>
-            </Row>
+            {combinedTelemetryToggle ? (
+                <>
+                    <LiveData />
+                </>
+            ) : (
+                <>
+                    <Analysis />
+                </>
+            )}
         </div>
     )
 }

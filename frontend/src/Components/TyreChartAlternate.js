@@ -76,7 +76,7 @@ const calculateGlowColor = (temperature) => {
         .hex()
 }
 
-export const TyreChart = ({ tireData }) => {
+export const TyreChartAlternate = ({ tireData }) => {
     // Get the latest tire data
     const latestTire = tireData[tireData.length - 1]
     if (!latestTire) return null // Handle case when tireData is empty or undefined
@@ -146,37 +146,27 @@ export const TyreChart = ({ tireData }) => {
     )
 }
 
-// Function to render a single tire shape
 const renderTire = (x, y, width, height, margin, wear, temperature) => {
-    const wearColor = calculateBackgroundColor(wear)
     const rimColor = calculateGlowColor(temperature)
+    const barWidth = 20 // Width of the wear bar
+    const barX = x + width / 2 + margin // X-coordinate of the wear bar
+    const barY = y - height / 2 // Y-coordinate of the wear bar
+    const maxWearHeight = height // Maximum wear height, same as tire height
+    const wearHeight = (height * (100 - wear)) / 100 // Height of the worn part of the bar
 
     return (
         <g key={`${x}-${y}`}>
-            {/* Inner rectangle (tire) */}
+            {/* Tire */}
             <rect
                 x={x - width / 2}
                 y={y - height / 2}
                 width={width}
                 height={height}
-                fill={wearColor}
-                rx={height / 2}
-                ry={height / 2}
+                fill="none"
                 stroke="none"
-                transform={`rotate(90 ${x} ${y})`} // Rotate the tire by 90 degrees around its center
+                transform={`rotate(90 ${x} ${y})`}
             />
-            <text
-                x={x}
-                y={y}
-                textAnchor="middle"
-                alignmentBaseline="middle"
-                fill="white"
-                fontSize="16"
-            >
-                {`${wear}%`}
-            </text>
-
-            {/* Outer rectangle (rim) */}
+            {/* Rim */}
             <rect
                 x={x - width / 2 - margin}
                 y={y - height / 2 - margin}
@@ -184,11 +174,62 @@ const renderTire = (x, y, width, height, margin, wear, temperature) => {
                 height={height + 2 * margin}
                 fill="none"
                 stroke={rimColor}
-                strokeWidth={3}
-                rx={(height + 2 * margin) / 2}
-                ry={(height + 2 * margin) / 2}
-                transform={`rotate(90 ${x} ${y})`} // Rotate the rim by 90 degrees around its center
+                strokeWidth={4}
+                rx={(height + 2 * margin) / 4}
+                ry={(height + 2 * margin) / 4}
+                transform={`rotate(90 ${x} ${y})`}
             />
+            {/* Maximum wear bar outline */}
+            <rect
+                x={barX}
+                y={barY}
+                width={barWidth}
+                height={maxWearHeight}
+                fill="none"
+                stroke="#ffffff" // White outline color
+                strokeWidth={1}
+                rx={4} // Rounded corners
+                ry={4} // Rounded corners
+            />
+            {/* Maximum wear bar */}
+            <rect
+                x={barX}
+                y={barY}
+                width={barWidth}
+                height={maxWearHeight}
+                fill="none"
+                stroke="#ffffff" // White outline color
+                strokeWidth={1}
+                strokeDasharray={`${maxWearHeight} ${maxWearHeight}`} // Create dashed outline effect
+                rx={4} // Rounded corners
+                ry={4} // Rounded corners
+                transform={`rotate(180 ${barX + barWidth / 2} ${
+                    barY + maxWearHeight / 2
+                })`} // Rotate the outline
+            />
+            {/* Wear bar */}
+            <rect
+                x={barX}
+                y={barY + maxWearHeight - wearHeight}
+                width={barWidth}
+                height={wearHeight}
+                fill="#ffffff" // White color for worn part
+                stroke="#ffffff" // White border
+                strokeWidth={1}
+                rx={5} // Rounded corners
+                ry={5} // Rounded corners
+            />
+            {/* Wear percentage text */}
+            <text
+                x={barX + barWidth / 2}
+                y={barY - 15} // Adjust this value for positioning
+                textAnchor="middle"
+                alignmentBaseline="middle"
+                fill="#ffffff" // White color for text
+                fontSize="12"
+            >
+                {`${wear}%`}
+            </text>
         </g>
     )
 }
