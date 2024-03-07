@@ -142,48 +142,75 @@ func (cl *F1UdpClient) Init(conn *net.UDPConn) {
 	cl.processingbuffer = make([]byte, 0, PROCESSING_BUFFER_SIZE) // allow queuing of upto 8 packets in case processing takes time
 }
 
-func (cl *F1UdpClient) Poll() {
+func (cl *F1UdpClient) PacketProcessCleanup(processedPacketHeader *F1PacketHeader) {
+	cl.processingbuffer = cl.processingbuffer[PACKET_ID_SIZE_MAP[processedPacketHeader.PacketId]:]
+}
+
+func (cl *F1UdpClient) NeedToWaitForMoreData(packetHeader *F1PacketHeader) bool {
+	return len(cl.processingbuffer) < int(PACKET_ID_SIZE_MAP[packetHeader.PacketId])
+}
+
+func (cl *F1UdpClient) Poll(packetStore *PacketStore) error {
 	var packetHeader F1PacketHeader
 	n, _, err := cl.conn.ReadFromUDP(cl.readbuffer)
 	if err != nil {
 		Log.Println("Error reading from UDP:", err)
-		return
+		return err
 	}
 
 	cl.processingbuffer = append(cl.processingbuffer, cl.readbuffer[:n]...)
 
 	if len(cl.processingbuffer) > F1_PACKET_HEADER_PACKED_SIZE {
-		shouldMoveReadHead := true
+		err = nil
 		reader := bytes.NewReader(cl.processingbuffer)
 		packetHeader.Parse(reader)
+
 		switch packetHeader.PacketId {
 		case PacketID_Motion:
+			if cl.NeedToWaitForMoreData(&packetHeader) {
+				return nil
+			}
+
 			motiondata := F1CarMotionDataPacket{f1PacketHeader: &packetHeader}
 			if !motiondata.Parse(reader) {
-				Log.Panicln("Failed to parse car motion data, stopping")
+				err = fmt.Errorf("failed to parse car motion data")
+				Log.Println(err.Error())
 			}
+			packetStore.SavePacket(motiondata)
 		case PacketID_Event:
+			if cl.NeedToWaitForMoreData(&packetHeader) {
+				return nil
+			}
+
 			eventDetails := F1EventDataDetails{}
 			if !eventDetails.Parse(reader, &packetHeader) {
-				Log.Panicln("Failed to parse event details, stopping")
+				err = fmt.Errorf("failed to parse event details")
+				Log.Println(err.Error())
+			} else {
+				eventDetails.ProcessEvent(reader)
 			}
-			eventDetails.ProcessEvent(reader)
-
 		case PacketID_CarTelemetry:
+			if cl.NeedToWaitForMoreData(&packetHeader) {
+				return nil
+			}
+
 			cartelemetry := F1CarTelemetryDataPacket{f1PacketHeader: &packetHeader}
 			if !cartelemetry.Parse(reader) {
-				Log.Panicln("Failed to parse car telemetry packet, stopping")
+				err = fmt.Errorf("failed to parse car telemetry packet")
+				Log.Println(err.Error())
 			}
+			packetStore.SavePacket(cartelemetry)
 		default:
 			// Log.Printf("not implemented packet type %d handling\n", packetHeader.PacketId)
-			shouldMoveReadHead = false
 			cl.processingbuffer = cl.processingbuffer[n:]
+			return nil
 		}
 
-		if shouldMoveReadHead {
-			cl.processingbuffer = cl.processingbuffer[PACKET_ID_SIZE_MAP[packetHeader.PacketId]:]
-		}
+		cl.PacketProcessCleanup(&packetHeader)
+		return err
 	}
+
+	return nil
 }
 
 func (header *F1PacketHeader) Parse(data *bytes.Reader) bool {
