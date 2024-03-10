@@ -36,7 +36,13 @@ func main() {
 	f1UdpClient := F1UdpClient{}
 	f1UdpClient.Init(conn)
 
+	packetStore := PacketStore{}
+	packetStore.Init()
+
 	for {
-		f1UdpClient.Poll()
+		err := f1UdpClient.Poll(&packetStore)
+		if err != nil {
+			Log.Fatalln(err.Error())
+		}
 	}
 }
