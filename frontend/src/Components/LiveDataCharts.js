@@ -47,7 +47,7 @@ export const SteeringIndicator = ({ value }) => {
                     fill="white"
                     fontSize="15"
                 >
-                    {value}
+                    {value.toFixed()}
                 </text>
             </svg>
         </div>
@@ -56,19 +56,86 @@ export const SteeringIndicator = ({ value }) => {
 
 export const NumberChart = ({ value, label }) => {
     return (
-        <div style={{ padding: "2%", marginLeft: "3%" }}>
-            <span style={{ marginRight: "5%" }}>{label}</span>
-            <svg width="200" height="40">
-                <text
-                    x="100"
-                    y="26"
-                    textAnchor="middle"
-                    fill="white"
-                    fontSize="15"
+        <div
+            style={{
+                display: "inline-block",
+                backgroundColor: "rgba(64, 64, 64, 0.4)",
+                border: "2px solid grey",
+                borderRadius: "10px",
+                marginBottom: "3%",
+                marginRight: "3%",
+                marginLeft: "3%",
+                padding: "1%",
+            }}
+        >
+            <div
+                style={{
+                    padding: "2%",
+                    marginLeft: "3%",
+                    display: "flex",
+                    alignItems: "center",
+                }}
+            >
+                <span style={{ marginRight: "5%", verticalAlign: "middle" }}>
+                    {label}
+                </span>
+                <svg
+                    width="200"
+                    height="40"
+                    style={{ verticalAlign: "middle" }}
                 >
-                    {value}
-                </text>
-            </svg>
+                    <text
+                        x="70"
+                        y="26"
+                        textAnchor="middle"
+                        fill="white"
+                        fontSize="18"
+                        alignmentBaseline="middle"
+                    >
+                        {value.toFixed()}
+                    </text>
+                </svg>
+            </div>
         </div>
+    )
+}
+
+export const PitChart = ({ x, y, pitRec1, pitRec2 }) => {
+    return (
+        <svg>
+            <g>
+                <rect
+                    x={x - 80}
+                    y={y + 23}
+                    width={30}
+                    height={30}
+                    fill="#F6C324" //#F6C324 //FFFAA0
+                    stroke="#F6C324"
+                    rx="5"
+                    ry="5"
+                />
+                <text
+                    x={x}
+                    y={y}
+                    textAnchor="middle"
+                    alignmentBaseline="middle"
+                    fill="#ffffff" // White color for text
+                    fontSize="18"
+                >
+                    PIT INFO
+                </text>
+                <text
+                    x={x}
+                    y={y + 50}
+                    textAnchor="middle"
+                    alignmentBaseline="middle"
+                    fill="#ffffff"
+                >
+                    <tspan fontWeight="400" fontSize="28">
+                        {pitRec1} - {pitRec2}
+                    </tspan>
+                </text>
+            </g>
+        </svg>
     )
 }

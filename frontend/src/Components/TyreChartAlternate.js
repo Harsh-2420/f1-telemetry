@@ -13,6 +13,7 @@ import {
     Rectangle,
 } from "recharts"
 import chroma from "chroma-js"
+import { Row } from "react-bootstrap"
 
 // Function to calculate background color based on wear percentage
 const calculateBackgroundColor = (wear) => {
@@ -82,19 +83,15 @@ export const TyreChartAlternate = ({ tireData }) => {
     if (!latestTire) return null // Handle case when tireData is empty or undefined
 
     // Tire dimensions
-    const tireWidth = 130
-    const tireHeight = 65
-    const tireMargin = 5
+    const tireWidth = 80
+    const tireHeight = 35
+    const tireMargin = 4
+
+    const tyreColor = "#d83131" // if soft
 
     // Render tire shapes for each tire
     return (
         <>
-            <div class="h3-container-tyre">
-                <h3>Tyre Information</h3>
-                <div class="tyre-compound-icon" style={{}}>
-                    C4
-                </div>
-            </div>
             <svg width="600" height="400">
                 <g>
                     {/* Front Left tire */}
@@ -110,7 +107,7 @@ export const TyreChartAlternate = ({ tireData }) => {
 
                     {/* Front Right tire */}
                     {renderTire(
-                        300,
+                        250,
                         100,
                         tireWidth,
                         tireHeight,
@@ -122,7 +119,7 @@ export const TyreChartAlternate = ({ tireData }) => {
                     {/* Rear Left tire */}
                     {renderTire(
                         100,
-                        300,
+                        250,
                         tireWidth,
                         tireHeight,
                         tireMargin,
@@ -132,16 +129,103 @@ export const TyreChartAlternate = ({ tireData }) => {
 
                     {/* Rear Right tire */}
                     {renderTire(
-                        300,
-                        300,
+                        250,
+                        250,
                         tireWidth,
                         tireHeight,
                         tireMargin,
                         latestTire.tyre.wear.rearRight,
                         latestTire.tyre.temperature.rearRight
                     )}
+                    {TyreDetails(410, 25, 60, 60, latestTire.tyre.type)}
+                    {TyreAge(410, 170, 90, 90, latestTire.tyre.age, tyreColor)}
                 </g>
             </svg>
+        </>
+    )
+}
+
+const TyreDetails = (x, y, width, height, tyreType, tyreColor) => {
+    return (
+        <>
+            <g>
+                <text
+                    x={x}
+                    y={y + 68}
+                    textAnchor="middle"
+                    alignmentBaseline="middle"
+                    fill="#ffff"
+                >
+                    <tspan
+                        x={x - 20}
+                        fontWeight="400"
+                        fontSize="20"
+                        fill="#d83131"
+                    >
+                        {tyreType}
+                    </tspan>
+                </text>
+                <rect
+                    x={x - 50}
+                    y={y + 30}
+                    width={width}
+                    height={height}
+                    rx={width}
+                    ry={height}
+                    fill="none"
+                    stroke="#d83131"
+                    strokeWidth={3}
+                />
+            </g>
+        </>
+    )
+}
+const TyreAge = (x, y, width, height, tyreAge) => {
+    return (
+        <>
+            <g>
+                <text
+                    x={x}
+                    y={y}
+                    textAnchor="middle"
+                    alignmentBaseline="middle"
+                    fill="#ffffff" // White color for text
+                    fontSize="18"
+                >
+                    Tyre Age
+                </text>
+                <text
+                    x={x}
+                    y={y + 75}
+                    textAnchor="middle"
+                    alignmentBaseline="middle"
+                    fill="#ffff"
+                >
+                    <tspan
+                        x={x - 5}
+                        // y={y + 80}
+                        fontWeight="400"
+                        fontSize="30"
+                        fill="#F6C324"
+                    >
+                        {tyreAge}
+                    </tspan>
+                    <tspan x={x - 5} dy="2em" fontSize="12">
+                        LAPS
+                    </tspan>
+                </text>
+                <rect
+                    x={x - 50}
+                    y={y + 30}
+                    width={width}
+                    height={height}
+                    rx={width}
+                    ry={height}
+                    fill="none"
+                    stroke="white"
+                    strokeWidth={3}
+                />
+            </g>
         </>
     )
 }
@@ -228,7 +312,7 @@ const renderTire = (x, y, width, height, margin, wear, temperature) => {
                 fill="#ffffff" // White color for text
                 fontSize="12"
             >
-                {`${wear}%`}
+                {`${wear.toFixed(0)}%`}
             </text>
         </g>
     )

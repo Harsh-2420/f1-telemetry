@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Row, Col, Button } from "react-bootstrap"
 import { DropdownComponent } from "../Components/DropdownComponent"
+// import MultipleSelectChip from "../Components/DropdownComponent"
 import {
     Chart,
     SplitColorChart,
@@ -24,6 +25,7 @@ export const Telemetry = () => {
 
     const [combinedTelemetryToggle, setCombinedTelemetryToggle] =
         useState(false)
+
     const toggleCombinedTelemetry = () => {
         setCombinedTelemetryToggle(!combinedTelemetryToggle)
     }
@@ -41,7 +43,7 @@ export const Telemetry = () => {
     return (
         <div
             style={{
-                background: "black",
+                background: "#202020",
                 fontFamily: "Futura",
                 color: "white",
                 position: "relative",
