@@ -39,6 +39,8 @@ func main() {
 	packetStore := PacketStore{}
 	packetStore.Init()
 
+	go RunAPIServer(&packetStore)
+
 	for {
 		err := f1UdpClient.Poll(&packetStore)
 		if err != nil {

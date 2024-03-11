@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"math"
 	"net"
 	"reflect"
 )
@@ -60,24 +59,24 @@ type F1ButtonEvent struct {
 }
 
 type F1CarMotionData struct {
-	WorldPositionX     float32 // World space X position - metres
-	WorldPositionY     float32 // World space Y position
-	WorldPositionZ     float32 // World space Z position
-	WorldVelocityX     float32 // Velocity in world space X – metres/s
-	WorldVelocityY     float32 // Velocity in world space Y
-	WorldVelocityZ     float32 // Velocity in world space Z
-	WorldForwardDirX   int16   // World space forward X direction (normalised)
-	WorldForwardDirY   int16   // World space forward Y direction (normalised)
-	WorldForwardDirZ   int16   // World space forward Z direction (normalised)
-	WorldRightDirX     int16   // World space right X direction (normalised)
-	WorldRightDirY     int16   // World space right Y direction (normalised)
-	WorldRightDirZ     int16   // World space right Z direction (normalised)
+	WorldPositionX     float32 `json:"-"` // World space X position - metres
+	WorldPositionY     float32 `json:"-"` // World space Y position
+	WorldPositionZ     float32 `json:"-"` // World space Z position
+	WorldVelocityX     float32 `json:"-"` // Velocity in world space X – metres/s
+	WorldVelocityY     float32 `json:"-"` // Velocity in world space Y
+	WorldVelocityZ     float32 `json:"-"` // Velocity in world space Z
+	WorldForwardDirX   int16   `json:"-"` // World space forward X direction (normalised)
+	WorldForwardDirY   int16   `json:"-"` // World space forward Y direction (normalised)
+	WorldForwardDirZ   int16   `json:"-"` // World space forward Z direction (normalised)
+	WorldRightDirX     int16   `json:"-"` // World space right X direction (normalised)
+	WorldRightDirY     int16   `json:"-"` // World space right Y direction (normalised)
+	WorldRightDirZ     int16   `json:"-"` // World space right Z direction (normalised)
 	GForceLateral      float32 // Lateral G-Force component
 	GForceLongitudinal float32 // Longitudinal G-Force component
 	GForceVertical     float32 // Vertical G-Force component
-	Yaw                float32 // Yaw angle in radians
-	Pitch              float32 // Pitch angle in radians
-	Roll               float32 // Roll angle in radians
+	Yaw                float32 `json:"-"` // Yaw angle in radians
+	Pitch              float32 `json:"-"` // Pitch angle in radians
+	Roll               float32 `json:"-"` // Roll angle in radians
 }
 
 type F1CarMotionDataPacket struct {
@@ -267,16 +266,7 @@ func (event *F1ButtonEvent) Parse(data *bytes.Reader, eventDetails *F1EventDataD
 }
 
 func (motiondata *F1CarMotionData) Parse(data *bytes.Reader, carIndex uint8, header *F1PacketHeader) bool {
-	if !ParseStruct(data, motiondata) {
-		return false
-	}
-
-	// if header.PlayerCarIndex == carIndex {
-	// 	gForces := Vec3{motiondata.GForceLateral, motiondata.GForceLongitudinal, motiondata.GForceVertical}
-	// 	log.Printf("Lateral G: %1.f\n", gForces.X)
-	// }
-
-	return true
+	return ParseStruct(data, motiondata)
 }
 
 func (motiondataPacket *F1CarMotionDataPacket) Parse(data *bytes.Reader) bool {
@@ -300,13 +290,13 @@ func (carTelemetry *F1CarTelemetryData) Parse(data *bytes.Reader, carIndex uint8
 		return false
 	}
 
-	if header.PlayerCarIndex == carIndex {
-		saveCursorPosition := "\033[s"
-		clearLine := "\033[u\033[K"
-		fmt.Print(saveCursorPosition)
-		fmt.Print(clearLine)
-		fmt.Printf("S: %d KM/H T: %d %% B: %d %%\r", carTelemetry.Speed, int(math.Round(float64(carTelemetry.Throttle*100))), int(math.Round(float64(carTelemetry.Brake*100))))
-	}
+	// if header.PlayerCarIndex == carIndex {
+	// 	saveCursorPosition := "\033[s"
+	// 	clearLine := "\033[u\033[K"
+	// 	fmt.Print(saveCursorPosition)
+	// 	fmt.Print(clearLine)
+	// 	fmt.Printf("S: %d KM/H T: %d %% B: %d %%\r", carTelemetry.Speed, int(math.Round(float64(carTelemetry.Throttle*100))), int(math.Round(float64(carTelemetry.Brake*100))))
+	// }
 
 	return true
 }
