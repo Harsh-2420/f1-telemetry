@@ -15,8 +15,9 @@ import {
 import "bootstrap/dist/css/bootstrap.min.css"
 import { dummyTelemetryData } from "../Data/telemetryData"
 import { generateRandomTelemetryData } from "../Functions/telemetryUtils"
-import { processLiveData } from "../Functions/processLiveData"
-import RealTimeData from "../Data/telemetry.json"
+import { fetchTelemetryData, Queue } from "../Functions/processLiveData"
+
+const frameQueue = new Queue()
 
 export const LiveData = () => {
     const [selectedSession, setSelectedSession] = useState("Race")
@@ -35,52 +36,28 @@ export const LiveData = () => {
     // }, [selectedSession, selectedTrack, selectedLap])
 
     useEffect(() => {
-        const fetchTelemetryData = async () => {
-            try {
-                const response = await fetch("/api/live")
-                if (!response.ok) {
-                    throw new Error("Failed to fetch telemetry data")
-                }
-                const telemetryData = await response.json()
-
-                // Your existing processing logic goes here
-                const processedFrames = new Set()
-                for (
-                    let i = 0;
-                    i < telemetryData.CarTelemetryDataPackets.length;
-                    i++
-                ) {
-                    const frame = telemetryData.CarTelemetryDataPackets[i]
-                    const overallFrameIdentifier =
-                        frame.Header.OverallFrameIdentifier
-                    if (processedFrames.has(overallFrameIdentifier)) {
-                        console.log(
-                            "Previously processed ",
-                            overallFrameIdentifier
-                        )
-                    } else {
-                        processedFrames.add(overallFrameIdentifier)
-                        const playerIndex = frame.Header.PlayerCarIndex
-                        const playerData =
-                            frame.Body.CarTelemetryData[playerIndex]
-
-                        setTelemetryData((prevDataList) => {
-                            const newDataList = [...prevDataList, playerData]
-                            if (newDataList.length > 80) {
-                                newDataList.splice(0, newDataList.length - 80) // keep only the last 80 elements
-                            }
-                            return newDataList
-                        })
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching telemetry data:", error)
+        frameQueue.reset()
+        const intervalId = setInterval(() => fetchTelemetryData(frameQueue), 100)
+        const dequeueInterval = setInterval(() => {
+            const newFrame = frameQueue.dequeue()
+            if (newFrame === null)
+            {
+                return;
             }
-        }
 
-        const intervalId = setInterval(fetchTelemetryData, 100)
+            setTelemetryData((prevDataList) => {
+                const newDataList = [...prevDataList, newFrame]
+                if (newDataList.length > 80) {
+                    newDataList.splice(0, newDataList.length - 80) // keep only the last 80 elements
+                }
+                return newDataList
+            })
+        }, 8)
 
-        return () => clearInterval(intervalId) // Cleanup function
+        return () => {
+            clearInterval(intervalId)
+            clearInterval(dequeueInterval)
+        } // Cleanup function
     }, [])
     // console.log(
     //     telemetryData[telemetryData.length - 1]["TyresSurfaceTemperature"]
@@ -144,7 +121,7 @@ export const LiveData = () => {
                                             value={
                                                 telemetryData[
                                                     telemetryData.length - 1
-                                                ].Steering
+                                                ].Steer
                                             }
                                         />
                                     </Col>

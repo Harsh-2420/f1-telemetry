@@ -15,6 +15,8 @@ func HandleLiveDataRequest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	GetLogger().Printf("Live data request, sending live packets (size = %d bytes)\n", len(data))
+
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
@@ -30,5 +32,5 @@ func RunAPIServer(ps *PacketStore) {
 	http.HandleFunc("/ping", HandlePing)
 	http.HandleFunc("/api/live", HandleLiveDataRequest)
 
-	http.ListenAndServe(":3000", nil)
+	http.ListenAndServe(":5000", nil)
 }

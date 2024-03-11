@@ -102,7 +102,7 @@ export const TotalTelemetryChart = ({
                 >
                     <XAxis dataKey="distance" />
                     <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
+                    <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
                     <Tooltip />
 
                     <Line
