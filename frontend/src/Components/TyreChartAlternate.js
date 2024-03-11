@@ -78,8 +78,21 @@ const calculateGlowColor = (temperature) => {
 }
 
 export const TyreChartAlternate = ({ tireData }) => {
-    // Get the latest tire data
-    const latestTire = tireData[tireData.length - 1]
+    const [frontLeft, frontRight, rearLeft, rearRight] = tireData
+    const latestTire = { tyre: { wear: {}, temperature: {} } }
+    latestTire.tyre.temperature = {
+        frontLeft,
+        frontRight,
+        rearLeft,
+        rearRight,
+    }
+    latestTire.tyre.wear = {
+        frontLeft,
+        frontRight,
+        rearLeft,
+        rearRight,
+    }
+
     if (!latestTire) return null // Handle case when tireData is empty or undefined
 
     // Tire dimensions

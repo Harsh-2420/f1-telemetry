@@ -95,7 +95,7 @@ export const Analysis = () => {
                     </div>
                 </Col>
                 <Col>
-                    <TyreChartAlternate tireData={telemetryData} />
+                    {/* <TyreChartAlternate tireData={telemetryData} /> */}
                 </Col>
             </Row>
         </div>

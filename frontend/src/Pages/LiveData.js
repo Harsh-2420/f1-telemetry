@@ -15,6 +15,8 @@ import {
 import "bootstrap/dist/css/bootstrap.min.css"
 import { dummyTelemetryData } from "../Data/telemetryData"
 import { generateRandomTelemetryData } from "../Functions/telemetryUtils"
+import { processLiveData } from "../Functions/processLiveData"
+import RealTimeData from "../Data/data.json"
 
 export const LiveData = () => {
     const [selectedSession, setSelectedSession] = useState("Race")
@@ -28,9 +30,9 @@ export const LiveData = () => {
             setCursorX(e.activePayload[0].payload.distance)
         }
     }
-    useEffect(() => {
-        setTelemetryData(dummyTelemetryData.telemetry)
-    }, [selectedSession, selectedTrack, selectedLap])
+    // useEffect(() => {
+    //     setTelemetryData(dummyTelemetryData.telemetry)
+    // }, [selectedSession, selectedTrack, selectedLap])
 
     // useEffect(() => {
     //     // Generate random telemetry data when selectedSession changes
@@ -51,10 +53,48 @@ export const LiveData = () => {
     //             return newDataList
     //         })
     //     }, 50)
-    //
+
     //     return () => clearInterval(intervalId) // Cleanup interval on component unmount
     // }, [selectedSession, selectedTrack, selectedLap])
 
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            // Initialise Telemetry
+            const carTelemetry = RealTimeData.CarTelemetryDataPackets
+            const sessionId = carTelemetry[0].Header.SessionUID
+
+            // Initialise Stores
+            const processedFrames = new Set()
+
+            for (let i = 0; i < carTelemetry.length; i++) {
+                const frame = carTelemetry[i]
+                const overallFrameIdentifier =
+                    frame.Header.OverallFrameIdentifier
+                if (processedFrames.has(overallFrameIdentifier)) {
+                    console.log("Previously processed ", overallFrameIdentifier)
+                } else {
+                    processedFrames.add(overallFrameIdentifier)
+                    const playerIndex = frame.Header.PlayerCarIndex
+                    const playerData = frame.Body.CarTelemetryData[playerIndex]
+
+                    setTelemetryData((prevDataList) => {
+                        const newDataList = [...prevDataList, playerData]
+
+                        if (newDataList.length > 80) {
+                            newDataList.splice(0, newDataList.length - 80) // keep only the last 80 elements
+                        }
+
+                        return newDataList
+                    })
+                }
+            }
+        }, 100)
+
+        return () => clearInterval(intervalId)
+    }, [selectedSession, selectedTrack, selectedLap])
+    // console.log(
+    //     telemetryData[telemetryData.length - 1]["TyresSurfaceTemperature"]
+    // )
     return (
         <div
             style={{
@@ -67,14 +107,14 @@ export const LiveData = () => {
             <Row>
                 <Col>
                     <div>
-                        {telemetryData.length > 1 ? (
+                        {telemetryData.length >= 1 ? (
                             <>
                                 <TotalTelemetryChart
                                     data={telemetryData}
                                     syncId="telemetryCharts"
                                     onMouseMove={handleCursorMove}
-                                    throttleKey="throttle"
-                                    brakeKey="brake"
+                                    throttleKey="Throttle"
+                                    brakeKey="Brake"
                                     titleLabel="Telemetry v Distance"
                                 />
 
@@ -88,12 +128,12 @@ export const LiveData = () => {
                                             rpm={
                                                 telemetryData[
                                                     telemetryData.length - 1
-                                                ].engineRPM
+                                                ].EngineRPM
                                             }
                                             gear={
                                                 telemetryData[
                                                     telemetryData.length - 1
-                                                ].gear
+                                                ].Gear
                                             }
                                         />
                                     </Col>
@@ -107,14 +147,14 @@ export const LiveData = () => {
                                             value={
                                                 telemetryData[
                                                     telemetryData.length - 1
-                                                ].speed
+                                                ].Speed
                                             }
                                         />
                                         <SteeringIndicator
                                             value={
                                                 telemetryData[
                                                     telemetryData.length - 1
-                                                ].steering
+                                                ].Steering
                                             }
                                         />
                                     </Col>
@@ -141,23 +181,47 @@ export const LiveData = () => {
                     </div>
                 </Col>
                 <Col>
-                    <TyreChartAlternate tireData={telemetryData} />
-                    <Row>
-                        <Col xs={4}>
-                            <PitChart x={100} y={10} pitRec1={9} pitRec2={12} />
-                        </Col>
-                        <Col xs={4}>
-                            <FuelChart x={100} y={10} value={9} />
-                        </Col>
-                        <Col xs={4}>
-                            <LiveBestLapTimes
-                                x={100}
-                                y={10}
-                                personalBest={"1:09:23"}
-                                sessionBest={"1:09:23"}
+                    {telemetryData.length >= 1 ? (
+                        <>
+                            {/* {typeof telemetryData[telemetryData.length - 1]
+                                .TyresSurfaceTemperature !== "undefined"
+                                ? console.log(
+                                      telemetryData[telemetryData.length - 1]
+                                          .TyresSurfaceTemperature
+                                  )
+                                : console.log("Not Init")} */}
+
+                            <TyreChartAlternate
+                                tireData={
+                                    telemetryData[telemetryData.length - 1]
+                                        .TyresSurfaceTemperature
+                                }
                             />
-                        </Col>
-                    </Row>
+                            <Row>
+                                <Col xs={4}>
+                                    <PitChart
+                                        x={100}
+                                        y={10}
+                                        pitRec1={9}
+                                        pitRec2={12}
+                                    />
+                                </Col>
+                                <Col xs={4}>
+                                    <FuelChart x={100} y={10} value={9} />
+                                </Col>
+                                <Col xs={4}>
+                                    <LiveBestLapTimes
+                                        x={100}
+                                        y={10}
+                                        personalBest={"1:09:23"}
+                                        sessionBest={"1:09:23"}
+                                    />
+                                </Col>
+                            </Row>
+                        </>
+                    ) : (
+                        <></>
+                    )}
                 </Col>
             </Row>
         </div>

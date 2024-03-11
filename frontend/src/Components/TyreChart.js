@@ -98,6 +98,7 @@ export const TyreChart = ({ tireData }) => {
             <svg width="600" height="400">
                 <g>
                     {/* Front Left tire */}
+
                     {renderTire(
                         100,
                         100,

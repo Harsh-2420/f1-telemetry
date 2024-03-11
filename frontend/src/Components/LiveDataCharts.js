@@ -51,7 +51,7 @@ export const SteeringIndicator = ({ value }) => {
                     fontSize="15"
                     fontWeight={400}
                 >
-                    {Math.abs(value.toFixed())}
+                    {value ? Math.abs(value.toFixed()) : ""}
                 </text>
             </svg>
         </div>
