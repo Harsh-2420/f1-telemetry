@@ -7,6 +7,10 @@ import {
     SteeringIndicator,
     NumberChart,
     PitChart,
+    RPMIndicator,
+    SpeedChart,
+    FuelChart,
+    LiveBestLapTimes,
 } from "../Components/LiveDataCharts"
 import "bootstrap/dist/css/bootstrap.min.css"
 import { dummyTelemetryData } from "../Data/telemetryData"
@@ -60,9 +64,6 @@ export const LiveData = () => {
                 position: "relative",
             }}
         >
-            {/* {telemetryData && (
-                <pre>{JSON.stringify(telemetryData, null, 2)}</pre>
-            )} */}
             <Row>
                 <Col>
                     <div>
@@ -76,40 +77,63 @@ export const LiveData = () => {
                                     brakeKey="brake"
                                     titleLabel="Telemetry v Distance"
                                 />
-                                <SteeringIndicator
-                                    value={
-                                        telemetryData[telemetryData.length - 1]
-                                            .steering
-                                    }
-                                />
-                                <NumberChart
-                                    value={
-                                        telemetryData[telemetryData.length - 1]
-                                            .gear
-                                    }
-                                    label="Gear"
-                                />
-                                <NumberChart
+
+                                <Row
+                                //  style={{ border: "1px solid magenta" }}
+                                >
+                                    <Col xs={6} style={{}}>
+                                        <RPMIndicator
+                                            x={200}
+                                            y={120}
+                                            rpm={
+                                                telemetryData[
+                                                    telemetryData.length - 1
+                                                ].engineRPM
+                                            }
+                                            gear={
+                                                telemetryData[
+                                                    telemetryData.length - 1
+                                                ].gear
+                                            }
+                                        />
+                                    </Col>
+                                    <Col
+                                        xs={6}
+                                        // style={{ border: "1px solid blue" }}
+                                    >
+                                        <SpeedChart
+                                            x={80}
+                                            y={60}
+                                            value={
+                                                telemetryData[
+                                                    telemetryData.length - 1
+                                                ].speed
+                                            }
+                                        />
+                                        <SteeringIndicator
+                                            value={
+                                                telemetryData[
+                                                    telemetryData.length - 1
+                                                ].steering
+                                            }
+                                        />
+                                    </Col>
+                                </Row>
+                                {/* <NumberChart
                                     value={
                                         telemetryData[telemetryData.length - 1]
                                             .speed
                                     }
                                     label="Speed"
                                 />
-                                <NumberChart
-                                    value={
-                                        telemetryData[telemetryData.length - 1]
-                                            .engineRPM
-                                    }
-                                    label="RPM"
-                                />
+
                                 <NumberChart
                                     value={
                                         telemetryData[telemetryData.length - 1]
                                             .drs
                                     }
                                     label="DRS"
-                                />
+                                /> */}
                             </>
                         ) : (
                             <></>
@@ -118,7 +142,22 @@ export const LiveData = () => {
                 </Col>
                 <Col>
                     <TyreChartAlternate tireData={telemetryData} />
-                    <PitChart x={100} y={10} pitRec1={9} pitRec2={12} />
+                    <Row>
+                        <Col xs={4}>
+                            <PitChart x={100} y={10} pitRec1={9} pitRec2={12} />
+                        </Col>
+                        <Col xs={4}>
+                            <FuelChart x={100} y={10} value={9} />
+                        </Col>
+                        <Col xs={4}>
+                            <LiveBestLapTimes
+                                x={100}
+                                y={10}
+                                personalBest={"1:09:23"}
+                                sessionBest={"1:09:23"}
+                            />
+                        </Col>
+                    </Row>
                 </Col>
             </Row>
         </div>
