@@ -34,64 +34,54 @@ export const LiveData = () => {
     //     setTelemetryData(dummyTelemetryData.telemetry)
     // }, [selectedSession, selectedTrack, selectedLap])
 
-    // useEffect(() => {
-    //     // Generate random telemetry data when selectedSession changes
-    //     const intervalId = setInterval(() => {
-    //         // Generate random telemetry data
-    //         const randomData = generateRandomTelemetryData()
-
-    //         // Update telemetryDataList with the new data
-    //         setTelemetryData((prevDataList) => {
-    //             // Append the new data to the list
-    //             const newDataList = [...prevDataList, randomData]
-
-    //             // Trim the list if it exceeds 150 entries
-    //             if (newDataList.length > 80) {
-    //                 newDataList.shift() // Remove the oldest entry
-    //             }
-
-    //             return newDataList
-    //         })
-    //     }, 50)
-
-    //     return () => clearInterval(intervalId) // Cleanup interval on component unmount
-    // }, [selectedSession, selectedTrack, selectedLap])
-
     useEffect(() => {
-        const intervalId = setInterval(() => {
-            // Initialise Telemetry
-            const carTelemetry = RealTimeData.CarTelemetryDataPackets
-            const sessionId = carTelemetry[0].Header.SessionUID
-
-            // Initialise Stores
-            const processedFrames = new Set()
-
-            for (let i = 0; i < carTelemetry.length; i++) {
-                const frame = carTelemetry[i]
-                const overallFrameIdentifier =
-                    frame.Header.OverallFrameIdentifier
-                if (processedFrames.has(overallFrameIdentifier)) {
-                    console.log("Previously processed ", overallFrameIdentifier)
-                } else {
-                    processedFrames.add(overallFrameIdentifier)
-                    const playerIndex = frame.Header.PlayerCarIndex
-                    const playerData = frame.Body.CarTelemetryData[playerIndex]
-
-                    setTelemetryData((prevDataList) => {
-                        const newDataList = [...prevDataList, playerData]
-
-                        if (newDataList.length > 80) {
-                            newDataList.splice(0, newDataList.length - 80) // keep only the last 80 elements
-                        }
-
-                        return newDataList
-                    })
+        const fetchTelemetryData = async () => {
+            try {
+                const response = await fetch("/api/live")
+                if (!response.ok) {
+                    throw new Error("Failed to fetch telemetry data")
                 }
-            }
-        }, 100)
+                const telemetryData = await response.json()
 
-        return () => clearInterval(intervalId)
-    }, [selectedSession, selectedTrack, selectedLap])
+                // Your existing processing logic goes here
+                const processedFrames = new Set()
+                for (
+                    let i = 0;
+                    i < telemetryData.CarTelemetryDataPackets.length;
+                    i++
+                ) {
+                    const frame = telemetryData.CarTelemetryDataPackets[i]
+                    const overallFrameIdentifier =
+                        frame.Header.OverallFrameIdentifier
+                    if (processedFrames.has(overallFrameIdentifier)) {
+                        console.log(
+                            "Previously processed ",
+                            overallFrameIdentifier
+                        )
+                    } else {
+                        processedFrames.add(overallFrameIdentifier)
+                        const playerIndex = frame.Header.PlayerCarIndex
+                        const playerData =
+                            frame.Body.CarTelemetryData[playerIndex]
+
+                        setTelemetryData((prevDataList) => {
+                            const newDataList = [...prevDataList, playerData]
+                            if (newDataList.length > 80) {
+                                newDataList.splice(0, newDataList.length - 80) // keep only the last 80 elements
+                            }
+                            return newDataList
+                        })
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching telemetry data:", error)
+            }
+        }
+
+        const intervalId = setInterval(fetchTelemetryData, 100)
+
+        return () => clearInterval(intervalId) // Cleanup function
+    }, [])
     // console.log(
     //     telemetryData[telemetryData.length - 1]["TyresSurfaceTemperature"]
     // )
