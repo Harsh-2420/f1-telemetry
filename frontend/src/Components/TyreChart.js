@@ -89,9 +89,9 @@ export const TyreChart = ({ tireData }) => {
     // Render tire shapes for each tire
     return (
         <>
-            <div class="h3-container-tyre">
+            <div className="h3-container-tyre">
                 <h3>Tyre Information</h3>
-                <div class="tyre-compound-icon" style={{}}>
+                <div className="tyre-compound-icon" style={{}}>
                     C4
                 </div>
             </div>

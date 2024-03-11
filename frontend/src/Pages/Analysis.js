@@ -6,7 +6,7 @@ import {
     SplitColorChart,
     TotalTelemetryChart,
 } from "../Components/ChartComponents"
-import { TyreChart } from "../Components/TyreChart"
+import { TyreChartAlternate } from "../Components/TyreChartAlternate"
 
 import "bootstrap/dist/css/bootstrap.min.css"
 import { dummyTelemetryData } from "../Data/telemetryData"
@@ -39,7 +39,7 @@ export const Analysis = () => {
     return (
         <div
             style={{
-                background: "black",
+                background: "#202020",
                 fontFamily: "Futura",
                 color: "white",
                 position: "relative", // Make sure the parent div has a position to accommodate the absolutely positioned div
@@ -95,7 +95,7 @@ export const Analysis = () => {
                     </div>
                 </Col>
                 <Col>
-                    <TyreChart tireData={telemetryData} />
+                    <TyreChartAlternate tireData={telemetryData} />
                 </Col>
             </Row>
         </div>
