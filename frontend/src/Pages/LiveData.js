@@ -16,7 +16,7 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import { dummyTelemetryData } from "../Data/telemetryData"
 import { generateRandomTelemetryData } from "../Functions/telemetryUtils"
 import { processLiveData } from "../Functions/processLiveData"
-import RealTimeData from "../Data/data.json"
+import RealTimeData from "../Data/telemetry.json"
 
 export const LiveData = () => {
     const [selectedSession, setSelectedSession] = useState("Race")

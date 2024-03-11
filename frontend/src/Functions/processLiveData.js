@@ -1,4 +1,4 @@
-import data from "../Data/data.json"
+import data from "../Data/telemetry.json"
 export function processLiveData() {
     // Initialise Telemetry
     const carTelemetry = data.CarTelemetryDataPackets
