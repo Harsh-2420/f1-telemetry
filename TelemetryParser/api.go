@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 )
+
+const PORT = 5000
 
 var packetStore *PacketStore
 
@@ -32,5 +35,6 @@ func RunAPIServer(ps *PacketStore) {
 	http.HandleFunc("/ping", HandlePing)
 	http.HandleFunc("/api/live", HandleLiveDataRequest)
 
-	http.ListenAndServe(":5000", nil)
+	GetLogger().Printf("Starting API server on port %d\n", PORT)
+	http.ListenAndServe(fmt.Sprintf(":%d", PORT), nil)
 }
