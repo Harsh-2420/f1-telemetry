@@ -1,67 +1,79 @@
-
 const MAX_SAVED_FRAME_NUMBERS = 64
-const processedFrames = new Set()
 
 export class Queue {
-    constructor() {
-        this.items = [];
+    /**
+     * @param {{ packetParentName: string, packetName: string }} dataSource
+     */
+    constructor(dataSource) {
+        this.items = []
+        this.enqueuedFrameNums = new Set()
+        this.dataSource = dataSource
     }
 
     enqueue(element) {
-        this.items.push(element);
+        this.items.push(element)
     }
 
     dequeue() {
         if (this.isEmpty()) {
-            return null;
+            return null
         }
 
-        return this.items.shift();
+        return this.items.shift()
     }
 
     isEmpty() {
-        return this.items.length === 0;
+        return this.items.length === 0
     }
 
-	reset() {
-		this.items = []
-	}
+    reset() {
+        this.items = []
+    }
 }
 
 /**
- * @param {Queue} frameQueue 
+ * @param {{ [key: string]: Queue }} dataQueues
  */
-export async function fetchTelemetryData(frameQueue) {
-	try {
-		const response = await fetch("/api/live")
-		if (!response.ok) {
-			throw new Error("Failed to fetch telemetry data")
-		}
-		const telemetryData = await response.json()
+export async function fetchTelemetryData(dataQueues) {
+    try {
+        const response = await fetch("/api/live")
+        if (!response.ok) {
+            throw new Error("Failed to fetch telemetry data")
+        }
+        const telemetryData = await response.json()
 
-		for (
-			let i = 0;
-			i < telemetryData.CarTelemetryDataPackets.length;
-			i++
-		) {
-			const frame = telemetryData.CarTelemetryDataPackets[i]
-			const overallFrameIdentifier =
-				frame.Header.OverallFrameIdentifier
-			if (!processedFrames.has(overallFrameIdentifier))
-			{
-				processedFrames.add(overallFrameIdentifier)
-				if (processedFrames.size > MAX_SAVED_FRAME_NUMBERS) {
-					const oldestFrameNumber = Math.min(...[...processedFrames.values()])
-					processedFrames.delete(oldestFrameNumber)
-				}
+        Object.keys(dataQueues).forEach((key) => {
+            const queue = dataQueues[key]
 
-				const playerIndex = frame.Header.PlayerCarIndex
-				const playerData = frame.Body.CarTelemetryData[playerIndex]
+            for (
+                let i = 0;
+                i < telemetryData[queue.dataSource.packetParentName].length;
+                i++
+            ) {
+                const frame =
+                    telemetryData[queue.dataSource.packetParentName][i]
+                const overallFrameIdentifier =
+                    frame.Header.OverallFrameIdentifier
+                if (!queue.enqueuedFrameNums.has(overallFrameIdentifier)) {
+                    queue.enqueuedFrameNums.add(overallFrameIdentifier)
+                    if (
+                        queue.enqueuedFrameNums.size > MAX_SAVED_FRAME_NUMBERS
+                    ) {
+                        const oldestFrameNumber = Math.min(
+                            ...[...queue.enqueuedFrameNums.values()]
+                        )
+                        queue.enqueuedFrameNums.delete(oldestFrameNumber)
+                    }
 
-				frameQueue.enqueue(playerData)
-			}
-		}
-	} catch (error) {
-		console.error("Error fetching telemetry data:", error)
-	}
+                    const playerIndex = frame.Header.PlayerCarIndex
+                    const playerData =
+                        frame.Body[queue.dataSource.packetName][playerIndex]
+
+                    queue.enqueue(playerData)
+                }
+            }
+        })
+    } catch (error) {
+        console.error("Error fetching telemetry data:", error)
+    }
 }

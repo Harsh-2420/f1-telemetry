@@ -101,8 +101,12 @@ export const TotalTelemetryChart = ({
                     onMouseMove={onMouseMove}
                 >
                     <XAxis dataKey="distance" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
+                    <YAxis yAxisId="left" domain={[0, 100]} />
+                    <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        domain={[0, 100]}
+                    />
                     <Tooltip />
 
                     <Line
@@ -110,12 +114,14 @@ export const TotalTelemetryChart = ({
                         dataKey={throttleKey}
                         stroke="green"
                         yAxisId="right"
+                        dot={false}
                     />
                     <Line
                         type="monotone"
                         dataKey={brakeKey}
                         stroke="red"
                         yAxisId="left"
+                        dot={false}
                     />
                 </LineChart>
             </ResponsiveContainer>

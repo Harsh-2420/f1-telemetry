@@ -168,23 +168,23 @@ export const FuelChart = ({ x, y, value }) => {
                     FUEL INFO
                 </text>
                 <text
-                    x={x}
-                    y={y + 50}
+                    x={x + 15}
+                    y={y + 45}
                     textAnchor="middle"
                     alignmentBaseline="middle"
                     fill="#ffffff"
                 >
                     {value > 0 ? (
-                        <tspan fontWeight="400" fontSize="28" fill="#69A84C">
-                            +{value.toFixed(2)}
+                        <tspan fontWeight="400" fontSize="20" fill="#69A84C">
+                            +{value.toFixed(2)} Laps
                         </tspan>
                     ) : value < 0 ? (
-                        <tspan fontWeight="400" fontSize="28" fill="#F65A24">
-                            {value.toFixed(2)}
+                        <tspan fontWeight="400" fontSize="20" fill="#F65A24">
+                            {value.toFixed(2)} Laps
                         </tspan>
                     ) : (
-                        <tspan fontWeight="400" fontSize="28" fill="white">
-                            {value.toFixed(2)}
+                        <tspan fontWeight="400" fontSize="20" fill="white">
+                            {value.toFixed(2)} Laps
                         </tspan>
                     )}
                 </text>

@@ -17,13 +17,23 @@ import { dummyTelemetryData } from "../Data/telemetryData"
 import { generateRandomTelemetryData } from "../Functions/telemetryUtils"
 import { fetchTelemetryData, Queue } from "../Functions/processLiveData"
 
-const frameQueue = new Queue()
+const dataQueues = {
+    carTelemetryDataQueue: new Queue({
+        packetParentName: "CarTelemetryDataPackets",
+        packetName: "CarTelemetryData",
+    }),
+    carStatusDataQueue: new Queue({
+        packetParentName: "CarStatusPackets",
+        packetName: "CarStatusData",
+    }),
+}
 
 export const LiveData = () => {
     const [selectedSession, setSelectedSession] = useState("Race")
     const [selectedTrack, setSelectedTrack] = useState("Track 1")
     const [selectedLap, setSelectedLap] = useState(1)
-    const [telemetryData, setTelemetryData] = useState([])
+    const [carTelemetryData, setCarTelemetryData] = useState([])
+    const [carStatusData, setCarStatusData] = useState([])
     const [cursorX, setCursorX] = useState(null)
 
     const handleCursorMove = (e) => {
@@ -36,21 +46,37 @@ export const LiveData = () => {
     // }, [selectedSession, selectedTrack, selectedLap])
 
     useEffect(() => {
-        frameQueue.reset()
-        const intervalId = setInterval(() => fetchTelemetryData(frameQueue), 100)
+        dataQueues.carTelemetryDataQueue.reset()
+        const intervalId = setInterval(
+            () => fetchTelemetryData(dataQueues),
+            100
+        )
         const dequeueInterval = setInterval(() => {
-            const newFrame = frameQueue.dequeue()
-            if (newFrame === null)
-            {
-                return;
+            const newFrames = {
+                newCarTelemetryFrame: {
+                    frame: dataQueues.carTelemetryDataQueue.dequeue(),
+                    setFrameFunc: setCarTelemetryData,
+                },
+                newCarStatusFrame: {
+                    frame: dataQueues.carStatusDataQueue.dequeue(),
+                    setFrameFunc: setCarStatusData,
+                },
             }
 
-            setTelemetryData((prevDataList) => {
-                const newDataList = [...prevDataList, newFrame]
-                if (newDataList.length > 80) {
-                    newDataList.splice(0, newDataList.length - 80) // keep only the last 80 elements
+            function AddNewFrame(frameList, newFrame) {
+                const newDataList = [...frameList, newFrame]
+                if (newDataList.length > 150) {
+                    newDataList.splice(0, newDataList.length - 150) // keep only the last 80 elements
                 }
                 return newDataList
+            }
+
+            Object.keys(newFrames).forEach((key) => {
+                const { frame, setFrameFunc } = newFrames[key]
+                frame !== null &&
+                    setFrameFunc((prevList) => {
+                        return AddNewFrame(prevList, frame)
+                    })
             })
         }, 8)
 
@@ -74,10 +100,10 @@ export const LiveData = () => {
             <Row>
                 <Col>
                     <div>
-                        {telemetryData.length >= 1 ? (
+                        {carTelemetryData.length >= 1 ? (
                             <>
                                 <TotalTelemetryChart
-                                    data={telemetryData}
+                                    data={carTelemetryData}
                                     syncId="telemetryCharts"
                                     onMouseMove={handleCursorMove}
                                     throttleKey="Throttle"
@@ -93,13 +119,13 @@ export const LiveData = () => {
                                             x={200}
                                             y={120}
                                             rpm={
-                                                telemetryData[
-                                                    telemetryData.length - 1
+                                                carTelemetryData[
+                                                    carTelemetryData.length - 1
                                                 ].EngineRPM
                                             }
                                             gear={
-                                                telemetryData[
-                                                    telemetryData.length - 1
+                                                carTelemetryData[
+                                                    carTelemetryData.length - 1
                                                 ].Gear
                                             }
                                         />
@@ -112,15 +138,15 @@ export const LiveData = () => {
                                             x={80}
                                             y={60}
                                             value={
-                                                telemetryData[
-                                                    telemetryData.length - 1
+                                                carTelemetryData[
+                                                    carTelemetryData.length - 1
                                                 ].Speed
                                             }
                                         />
                                         <SteeringIndicator
                                             value={
-                                                telemetryData[
-                                                    telemetryData.length - 1
+                                                carTelemetryData[
+                                                    carTelemetryData.length - 1
                                                 ].Steer
                                             }
                                         />
@@ -148,7 +174,7 @@ export const LiveData = () => {
                     </div>
                 </Col>
                 <Col>
-                    {telemetryData.length >= 1 ? (
+                    {carTelemetryData.length >= 1 ? (
                         <>
                             {/* {typeof telemetryData[telemetryData.length - 1]
                                 .TyresSurfaceTemperature !== "undefined"
@@ -159,10 +185,18 @@ export const LiveData = () => {
                                 : console.log("Not Init")} */}
 
                             <TyreChartAlternate
-                                tireData={
-                                    telemetryData[telemetryData.length - 1]
-                                        .TyresSurfaceTemperature
-                                }
+                                tireData={{
+                                    telemetryData:
+                                        carTelemetryData[
+                                            carTelemetryData.length - 1
+                                        ],
+                                    statusData:
+                                        carStatusData.length > 0
+                                            ? carStatusData[
+                                                  carStatusData.length - 1
+                                              ]
+                                            : 0,
+                                }}
                             />
                             <Row>
                                 <Col xs={4}>
@@ -174,7 +208,17 @@ export const LiveData = () => {
                                     />
                                 </Col>
                                 <Col xs={4}>
-                                    <FuelChart x={100} y={10} value={9} />
+                                    <FuelChart
+                                        x={100}
+                                        y={10}
+                                        value={
+                                            carStatusData.length > 0
+                                                ? carStatusData[
+                                                      carStatusData.length - 1
+                                                  ].FuelRemainingLaps
+                                                : 0
+                                        }
+                                    />
                                 </Col>
                                 <Col xs={4}>
                                     <LiveBestLapTimes
