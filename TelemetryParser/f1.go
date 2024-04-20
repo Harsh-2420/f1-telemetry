@@ -22,11 +22,21 @@ const (
 	PacketID_CarSetups
 	PacketID_CarTelemetry
 	PacketID_CarStatus
+	PacketID_FinalClassification
+	PacketID_LobbyInfo
+	PacketID_CarDamage
+	PacketID_SessionHistory
+	PacketID_TyreSets
+	PacketID_MotionEx
 
 	PacketID_Count
 )
 
-var PACKET_ID_SIZE_MAP = [PacketID_Count]uint32{1349, 644, 1131, 45, 1306, 1107, 1352, 1239}
+var PACKET_ID_SIZE_MAP = [PacketID_Count]uint32{1349, 644, 1131, 45, 1306, 1107, 1352, 1239, 1020, 1218, 953, 1460, 231, 217}
+
+type F1Packet interface {
+	Header() *F1PacketHeader
+}
 
 type F1PacketHeader struct {
 	PacketFormat            uint16  `json:"-"` // Version of the packet format, e.g., 2023
@@ -186,10 +196,83 @@ type F1LapDataPacket struct {
 	TimeTrialRivalCarIdx uint8                      // Index of Rival car in time trial (255 if invalid)
 }
 
+type F1FinalClassificationData struct {
+	Position          uint8    // Finishing position
+	NumLaps           uint8    // Number of laps completed
+	GridPosition      uint8    // Grid position of the car
+	Points            uint8    // Number of points scored
+	NumPitStops       uint8    // Number of pit stops made
+	ResultStatus      uint8    // Result status - 0 = invalid, 1 = inactive, 2 = active, 3 = finished, 4 = didnotfinish, 5 = disqualified, 6 = not classified, 7 = retired
+	BestLapTimeInMS   uint32   // Best lap time of the session in milliseconds
+	TotalRaceTime     float64  // Total race time in seconds without penalties
+	PenaltiesTime     uint8    // Total penalties accumulated in seconds
+	NumPenalties      uint8    // Number of penalties applied to this driver
+	NumTyreStints     uint8    // Number of tyres stints up to maximum
+	TyreStintsActual  [8]uint8 // Actual tyres used by this driver
+	TyreStintsVisual  [8]uint8 // Visual tyres used by this driver
+	TyreStintsEndLaps [8]uint8 // The lap number stints end on
+}
+
+// Keeping this commented out to suppress unused warning
+// type F1FinalClassificationDataPacket struct {
+// 	f1PacketHeader     *F1PacketHeader // Header
+// 	NumCars            uint8           // Number of cars in the final classification
+// 	ClassificationData [F1_MAX_NUM_CARS]F1FinalClassificationData
+// }
+
+type F1CarDamageData struct {
+	TyresWear            [4]float32 // Tyre wear (percentage)
+	TyresDamage          [4]uint8   // Tyre damage (percentage)
+	BrakesDamage         [4]uint8   // Brakes damage (percentage)
+	FrontLeftWingDamage  uint8      // Front left wing damage (percentage)
+	FrontRightWingDamage uint8      // Front right wing damage (percentage)
+	RearWingDamage       uint8      // Rear wing damage (percentage)
+	FloorDamage          uint8      // Floor damage (percentage)
+	DiffuserDamage       uint8      // Diffuser damage (percentage)
+	SidepodDamage        uint8      // Sidepod damage (percentage)
+	DRSFault             uint8      // Indicator for DRS fault, 0 = OK, 1 = fault
+	ERSFault             uint8      // Indicator for ERS fault, 0 = OK, 1 = fault
+	GearBoxDamage        uint8      // Gear box damage (percentage)
+	EngineDamage         uint8      // Engine damage (percentage)
+	EngineMGUHWear       uint8      // Engine wear MGU-H (percentage)
+	EngineESWear         uint8      // Engine wear ES (percentage)
+	EngineCEWear         uint8      // Engine wear CE (percentage)
+	EngineICEWear        uint8      // Engine wear ICE (percentage)
+	EngineMGUKWear       uint8      // Engine wear MGU-K (percentage)
+	EngineTCWear         uint8      // Engine wear TC (percentage)
+	EngineBlown          uint8      // Engine blown, 0 = OK, 1 = fault
+	EngineSeized         uint8      // Engine seized, 0 = OK, 1 = fault
+}
+
+type F1CarDamageDataPacket struct {
+	f1PacketHeader *F1PacketHeader // Header
+	CarDamageData  [22]F1CarDamageData
+}
+
 type F1UdpClient struct {
 	conn             *net.UDPConn
 	readbuffer       []byte
 	processingbuffer []byte
+}
+
+func (p F1CarMotionDataPacket) Header() *F1PacketHeader {
+	return p.f1PacketHeader
+}
+
+func (p F1CarTelemetryDataPacket) Header() *F1PacketHeader {
+	return p.f1PacketHeader
+}
+
+func (p F1CarStatusDataPacket) Header() *F1PacketHeader {
+	return p.f1PacketHeader
+}
+
+func (p F1LapDataPacket) Header() *F1PacketHeader {
+	return p.f1PacketHeader
+}
+
+func (p F1CarDamageDataPacket) Header() *F1PacketHeader {
+	return p.f1PacketHeader
 }
 
 func ParseStruct(reader *bytes.Reader, dstStruct any) bool {
@@ -249,8 +332,10 @@ func (cl *F1UdpClient) Poll(packetStore *PacketStore) error {
 			if !motiondata.Parse(reader) {
 				err = fmt.Errorf("failed to parse car motion data")
 				Log.Println(err.Error())
+				break
 			}
-			packetStore.SavePacket(motiondata)
+
+			SavePacket(packetStore, motiondata)
 		case PacketID_LapData:
 			if cl.NeedToWaitForMoreData(&packetHeader) {
 				return nil
@@ -261,8 +346,9 @@ func (cl *F1UdpClient) Poll(packetStore *PacketStore) error {
 			if !lapdata.Parse(reader) {
 				err = fmt.Errorf("failed to parse lap data")
 				Log.Println(err.Error())
+				break
 			}
-			packetStore.SavePacket(lapdata)
+			SavePacket(packetStore, lapdata)
 		case PacketID_Event:
 			if cl.NeedToWaitForMoreData(&packetHeader) {
 				return nil
@@ -284,8 +370,9 @@ func (cl *F1UdpClient) Poll(packetStore *PacketStore) error {
 			if !cartelemetry.Parse(reader) {
 				err = fmt.Errorf("failed to parse car telemetry packet")
 				Log.Println(err.Error())
+				break
 			}
-			packetStore.SavePacket(cartelemetry)
+			SavePacket(packetStore, cartelemetry)
 		case PacketID_CarStatus:
 			if cl.NeedToWaitForMoreData(&packetHeader) {
 				return nil
@@ -295,8 +382,22 @@ func (cl *F1UdpClient) Poll(packetStore *PacketStore) error {
 			if !carstatus.Parse(reader) {
 				err = fmt.Errorf("failed to parse car status packet")
 				Log.Println(err.Error())
+				break
 			}
-			packetStore.SavePacket(carstatus)
+			SavePacket(packetStore, carstatus)
+
+		case PacketID_CarDamage:
+			if cl.NeedToWaitForMoreData(&packetHeader) {
+				return nil
+			}
+
+			cardamage := F1CarDamageDataPacket{f1PacketHeader: &packetHeader}
+			if !cardamage.Parse(reader) {
+				err = fmt.Errorf("failed to parse car status packet")
+				Log.Println(err.Error())
+				break
+			}
+			SavePacket(packetStore, cardamage)
 		default:
 			// Log.Printf("not implemented packet type %d handling\n", packetHeader.PacketId)
 			cl.processingbuffer = cl.processingbuffer[n:]
@@ -417,5 +518,9 @@ func (packet *F1LapDataPacket) Parse(data *bytes.Reader) bool {
 }
 
 func (packet *F1CarStatusDataPacket) Parse(data *bytes.Reader) bool {
+	return GenericF1StructParse(data, packet, packet.f1PacketHeader)
+}
+
+func (packet *F1CarDamageDataPacket) Parse(data *bytes.Reader) bool {
 	return GenericF1StructParse(data, packet, packet.f1PacketHeader)
 }

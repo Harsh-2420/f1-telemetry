@@ -1,12 +1,16 @@
 package main
 
 import (
+	"encoding/binary"
 	"encoding/json"
+	"fmt"
+	"os"
+	"reflect"
 	"sync"
 )
 
 const (
-	PACKET_STORE_SIZE uint32 = 16
+	PACKET_STORE_SIZE uint32 = 8
 )
 
 type SavedPacket[T any] struct {
@@ -14,49 +18,74 @@ type SavedPacket[T any] struct {
 	Body   T
 }
 
+type RecordingConfig struct {
+	RecordingName   string
+	CompressPackets bool
+	PacketsToRecord uint16 // bitflags to indicate which packets to record (each bit corresponds to a packet ID)
+}
+
 type PacketStore struct {
-	RWLock                  sync.RWMutex `json:"-"`
-	CarTelemetryDataPackets []SavedPacket[F1CarTelemetryDataPacket]
-	CarMotionDataPackets    []SavedPacket[F1CarMotionDataPacket]
-	LapDataPackets          []SavedPacket[F1LapDataPacket]
-	CarStatusPackets        []SavedPacket[F1CarStatusDataPacket]
+	RWLock                    sync.RWMutex `json:"-"`
+	F1CarTelemetryDataPackets []SavedPacket[F1CarTelemetryDataPacket]
+	F1CarMotionDataPackets    []SavedPacket[F1CarMotionDataPacket]
+	F1LapDataPackets          []SavedPacket[F1LapDataPacket]
+	F1CarStatusDataPackets    []SavedPacket[F1CarStatusDataPacket]
+	F1CarDamageDataPackets    []SavedPacket[F1CarDamageDataPacket]
+
+	// Recording
+	RecordingConfig RecordingConfig `json:"-"`
+	RecordingActive bool            `json:"-"`
+	RecordingFile   *os.File        `json:"-"`
 }
 
 func (store *PacketStore) Init() {
-	store.CarTelemetryDataPackets = make([]SavedPacket[F1CarTelemetryDataPacket], 0, PACKET_STORE_SIZE)
-	store.CarMotionDataPackets = make([]SavedPacket[F1CarMotionDataPacket], 0, PACKET_STORE_SIZE)
-	store.LapDataPackets = make([]SavedPacket[F1LapDataPacket], 0, PACKET_STORE_SIZE)
-	store.CarStatusPackets = make([]SavedPacket[F1CarStatusDataPacket], 0, PACKET_STORE_SIZE)
+	store.F1CarTelemetryDataPackets = make([]SavedPacket[F1CarTelemetryDataPacket], 0, PACKET_STORE_SIZE)
+	store.F1CarMotionDataPackets = make([]SavedPacket[F1CarMotionDataPacket], 0, PACKET_STORE_SIZE)
+	store.F1LapDataPackets = make([]SavedPacket[F1LapDataPacket], 0, PACKET_STORE_SIZE)
+	store.F1CarStatusDataPackets = make([]SavedPacket[F1CarStatusDataPacket], 0, PACKET_STORE_SIZE)
 	store.RWLock = sync.RWMutex{}
 }
 
-func (store *PacketStore) SavePacket(packet any) {
+func SavePacket[T F1Packet](store *PacketStore, packet T) {
 	store.RWLock.Lock()
 	defer store.RWLock.Unlock()
 
-	switch p := packet.(type) {
-	case F1CarTelemetryDataPacket:
-		if len(store.CarTelemetryDataPackets) >= int(PACKET_STORE_SIZE) {
-			store.CarTelemetryDataPackets = store.CarTelemetryDataPackets[1:]
+	s := SavedPacket[T]{*packet.Header(), packet}
+	packetType := reflect.TypeOf(packet)
+
+	field := reflect.ValueOf(store).Elem().FieldByName(packetType.Name() + "s")
+
+	if field.IsValid() && field.Kind() == reflect.Slice {
+		if field.Len() >= int(PACKET_STORE_SIZE) {
+			field.Set(field.Slice(1, field.Len()))
 		}
-		store.CarTelemetryDataPackets = append(store.CarTelemetryDataPackets, SavedPacket[F1CarTelemetryDataPacket]{*p.f1PacketHeader, p})
-	case F1CarMotionDataPacket:
-		if len(store.CarMotionDataPackets) >= int(PACKET_STORE_SIZE) {
-			store.CarMotionDataPackets = store.CarMotionDataPackets[1:]
-		}
-		store.CarMotionDataPackets = append(store.CarMotionDataPackets, SavedPacket[F1CarMotionDataPacket]{*p.f1PacketHeader, p})
-	case F1LapDataPacket:
-		if len(store.LapDataPackets) >= int(PACKET_STORE_SIZE) {
-			store.LapDataPackets = store.LapDataPackets[1:]
-		}
-		store.LapDataPackets = append(store.LapDataPackets, SavedPacket[F1LapDataPacket]{*p.f1PacketHeader, p})
-	case F1CarStatusDataPacket:
-		if len(store.CarStatusPackets) >= int(PACKET_STORE_SIZE) {
-			store.CarStatusPackets = store.CarStatusPackets[1:]
-		}
-		store.CarStatusPackets = append(store.CarStatusPackets, SavedPacket[F1CarStatusDataPacket]{*p.f1PacketHeader, p})
-	default:
+		field.Set(reflect.Append(field, reflect.ValueOf(s)))
+	} else {
+		fmt.Println("Unsupported packet type")
+	}
+
+	if store.RecordingConfig.IsRecordingPacket(s.Header.PacketId) {
+		RecordSavedPacket(store, &s)
+	}
+}
+
+func RecordSavedPacket[T any](store *PacketStore, packet *SavedPacket[T]) {
+	if !store.RecordingActive || !store.RecordingConfig.IsRecordingPacket(packet.Header.PacketId) {
 		return
+	}
+
+	err := binary.Write(store.RecordingFile, binary.LittleEndian, packet.Header)
+	if err != nil {
+		Log.Println("Error writing packet to recording file")
+		Log.Println(err.Error())
+		return
+	}
+
+	f1Packet := reflect.ValueOf(&packet.Body).Elem().Field(1).Interface()
+	err = binary.Write(store.RecordingFile, binary.LittleEndian, f1Packet)
+	if err != nil {
+		Log.Println("Error writing packet to recording file")
+		Log.Println(err.Error())
 	}
 }
 
@@ -71,4 +100,67 @@ func (store *PacketStore) GetSavedPacketsJSON() []byte {
 	}
 
 	return data
+}
+
+func (store *PacketStore) StartRecording(config RecordingConfig) bool {
+	if store.RecordingActive {
+		Log.Println("Tried to start recording but a recording is already active")
+		return false
+	}
+
+	store.RecordingConfig = config
+
+	file, err := os.Create(store.RecordingConfig.RecordingName)
+	if err != nil {
+		Log.Println("Failed to create recording file")
+		Log.Println(err.Error())
+		return false
+	}
+
+	store.RecordingFile = file
+	store.RecordingActive = true
+	return true
+}
+
+func (store *PacketStore) StopRecording() {
+	if !store.RecordingActive {
+		Log.Println("Tried to stop recording but no recording is active")
+		return
+	}
+
+	store.RecordingActive = false
+	store.RecordingConfig = MakeRecordingConfig("", false)
+	store.RecordingFile.Close()
+}
+
+func MakeRecordingConfig(name string, compressPackets bool) RecordingConfig {
+	return RecordingConfig{name, compressPackets, 0}
+}
+
+func (config *RecordingConfig) RecordAllPackets() {
+	config.PacketsToRecord = 0xFFFF
+}
+
+func (config *RecordingConfig) RecordPacket(packetID uint8) {
+	if packetID >= PacketID_Count {
+		Log.Panicf("Tried to record packet with invalid ID '%d'\n", packetID)
+	}
+	config.PacketsToRecord = config.PacketsToRecord | (1 << packetID)
+}
+
+func (config *RecordingConfig) StopRecordingPacket(packetID uint8) {
+	if packetID >= PacketID_Count {
+		Log.Panicf("Tried to stop recording packet with invalid ID '%d'\n", packetID)
+	}
+
+	mask := uint16(1 << packetID)
+	config.PacketsToRecord = config.PacketsToRecord & (^mask)
+}
+
+func (config *RecordingConfig) IsRecordingPacket(packetID uint8) bool {
+	if packetID > PacketID_Count {
+		return false
+	}
+
+	return (config.PacketsToRecord & (1 << packetID)) != 0
 }

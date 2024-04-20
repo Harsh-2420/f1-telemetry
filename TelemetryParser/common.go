@@ -37,3 +37,9 @@ func (v *Vec3) Magnitude() float32 {
 	s := (v.X * v.X) + (v.Y * v.Y) + (v.Z + v.Z)
 	return float32(math.Sqrt(float64(s)))
 }
+
+func CheckImplements[T any, I any]() bool {
+	var o T
+	_, ok := interface{}(&o).(I)
+	return ok
+}
