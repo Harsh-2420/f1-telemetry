@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import {
     ResponsiveContainer,
+    ComposedChart,
     PieChart,
     Pie,
     Cell,
@@ -9,6 +10,9 @@ import {
     XAxis,
     YAxis,
     Tooltip,
+    BarChart,
+    Legend,
+    Bar,
 } from "recharts"
 
 export const SteeringIndicator = ({ value }) => {
@@ -311,6 +315,7 @@ export const RPMIndicator = ({ x, y, rpm, gear }) => {
                 fill="#8884d8"
                 paddingAngle={0}
                 strokeWidth={0.5}
+                dataKey="value"
             >
                 {data.map((entry, index) => (
                     <Cell
@@ -342,24 +347,58 @@ export const RPMIndicator = ({ x, y, rpm, gear }) => {
 }
 
 export const LapDetailsTracker = ({ incomingData }) => {
-    // Issues: New Data isnt getting added
-    // We dont want this to process constantly. Only when a new lap is added. (Can we change useEffect hook to icnomingData.sector?)
     const [data, setData] = useState([])
+    // Testing Data
+    // useEffect(() => {
+    //     // Fetch data or set data here
+    //     setData([
+    //         {
+    //             lapNum: 1,
+    //             sector1Time: 43250,
+    //             sector2Time: 41780,
+    //             sector3Time: 42890,
+    //             lapTime: 127920,
+    //         },
+    //         {
+    //             lapNum: 2,
+    //             sector1Time: 44010,
+    //             sector2Time: 42500,
+    //             sector3Time: 42250,
+    //             lapTime: 128760,
+    //         },
+    //         {
+    //             lapNum: 3,
+    //             sector1Time: 43890,
+    //             sector2Time: 42870,
+    //             sector3Time: 43500,
+    //             lapTime: 130260,
+    //         },
+    //         {
+    //             lapNum: 4,
+    //             sector1Time: 44500,
+    //             sector2Time: 43120,
+    //             sector3Time: 43380,
+    //             lapTime: 131000,
+    //         },
+    //     ])
+    // }, [])
 
     useEffect(() => {
+        // if (incomingData && incomingData.Sector) {
         const store = [...data]
+        console.log(store)
+        console.log(incomingData)
         let currentLapData
-        const incomingLapNum = incomingData.currentLapNum
         if (store.length === 0) {
             // no data yet
             console.log("store length 0 && store populated once")
-            if (incomingData.Sector === 2) {
+            if (incomingData.Sector === 2 && incomingData.Sector1TimeInMS > 0) {
                 // sector 3 begins
                 currentLapData = {
                     lapNum: incomingData.CurrentLapNum,
                     sector1Time: incomingData.Sector1TimeInMS,
-                    sector2Time: incomingData.Sector1TimeInMS,
-                    LastLapTime: incomingData.LastLapTimeInMS,
+                    sector2Time: incomingData.Sector2TimeInMS,
+                    // LastLapTime: incomingData.LastLapTimeInMS,
                     flag: false,
                 }
                 store.push(currentLapData)
@@ -373,8 +412,8 @@ export const LapDetailsTracker = ({ incomingData }) => {
             currentLapData = {
                 lapNum: incomingData.CurrentLapNum,
                 sector1Time: incomingData.Sector1TimeInMS,
-                sector2Time: incomingData.Sector1TimeInMS,
-                LastLapTime: incomingData.LastLapTimeInMS,
+                sector2Time: incomingData.Sector2TimeInMS,
+                // LastLapTime: incomingData.LastLapTimeInMS,
                 flag: false,
             }
             store.push(currentLapData)
@@ -386,36 +425,121 @@ export const LapDetailsTracker = ({ incomingData }) => {
             if (
                 // if flag is false, so sector3 is not yet populated
                 // if currLap is a new lap
-                incomingData.sector === 1 &&
-                latestLapDetails.lapNum === incomingData.currentLapNum - 1 &&
-                latestLapDetails.flag === false
+                incomingData.Sector === 0 &&
+                latestLapDetails.lapNum === incomingData.CurrentLapNum - 1 &&
+                latestLapDetails.flag === false &&
+                latestLapDetails.sector1Time > 0
             ) {
                 // add sector 3 info for last lap and change flag to true
                 latestLapDetails.sector3Time =
-                    incomingData.LastLapTimeInMS - latestLapDetails.sector3Time
+                    incomingData.LastLapTimeInMS -
+                    latestLapDetails.sector1Time -
+                    latestLapDetails.sector2Time
                 latestLapDetails.flag = true
+                latestLapDetails.lapTime = incomingData.LastLapTimeInMS
             }
         }
         setData(store)
-    }, [incomingData]) // instead of using incomingData can we call useEffect only when a sector changes? --> lesser calls
-
-    console.log(data)
-    console.log(incomingData)
+        // }
+    }, [
+        // incomingData && incomingData.Sector
+        incomingData.Sector,
+    ])
 
     return (
         <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data}>
-                <XAxis dataKey="CurrentLapNum" />
-                <YAxis yAxisId="left" />
-                <Tooltip />
+            <ComposedChart data={data}>
+                <XAxis dataKey="lapNum" />
+                <YAxis
+                    yAxisId="left"
+                    tickFormatter={formatMilliseconds}
+                    width={90}
+                />
+                {/* <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    tickFormatter={formatMilliseconds}
+                    opacity={0}
+                /> */}
+                <Tooltip content={<LapDetailsTooltip />} />
+                <Legend />
                 <Line
                     type="monotone"
-                    dataKey="LastLapTimeInMS"
-                    stroke="green"
+                    dataKey="lapTime"
+                    stroke="rgb(246, 195, 36)" // Changed line color to purple
                     yAxisId="left"
-                    dot={false}
+                    dot={true} // Added dots to the line chart
+                    strokeWidth={2}
                 />
-            </LineChart>
+                <Bar
+                    dataKey="sector1Time"
+                    stackId="stack"
+                    fill="#8884d8"
+                    yAxisId="left"
+                    shape={<LapDetailsStackedBar />} // Customizing shape of the bars
+                />
+                <Bar
+                    dataKey="sector2Time"
+                    stackId="stack"
+                    fill="#82ca9d"
+                    yAxisId="left"
+                    shape={<LapDetailsStackedBar />} // Customizing shape of the bars
+                />
+                <Bar
+                    dataKey="sector3Time"
+                    stackId="stack"
+                    fill="#ffc658"
+                    yAxisId="left"
+                    shape={<LapDetailsStackedBar />} // Customizing shape of the bars
+                />
+            </ComposedChart>
         </ResponsiveContainer>
     )
+}
+
+const LapDetailsStackedBar = (props) => {
+    const { fill, x, y, width, height } = props
+    return (
+        <rect
+            x={x + 45} // Adjusted x position to center the bar
+            y={y}
+            width={10} // Changed bar width to 10px
+            height={height}
+            fill={fill}
+            fillOpacity={0.3} // Set opacity to 0.1
+        />
+    )
+}
+
+const LapDetailsTooltip = ({ active, payload, label }) => {
+    if (active) {
+        return (
+            <div className="custom-tooltip">
+                <p className="label">{`Lap ${label}`}</p>
+                {payload.map((item, index) => (
+                    <p key={index} className="desc">
+                        {`${item.name}: ${formatMilliseconds(item.value)}`}{" "}
+                        {/* Format milliseconds */}
+                    </p>
+                ))}
+            </div>
+        )
+    }
+
+    return null
+}
+
+// Function to format milliseconds to minutes:seconds:milliseconds
+const formatMilliseconds = (milliseconds) => {
+    const minutes = Math.floor(milliseconds / (1000 * 60))
+    const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000)
+    const remainingMilliseconds = milliseconds % 1000
+
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}:${
+        remainingMilliseconds < 10
+            ? "00"
+            : remainingMilliseconds < 100
+            ? "0"
+            : ""
+    }${remainingMilliseconds}`
 }

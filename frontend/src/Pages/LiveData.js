@@ -238,16 +238,19 @@ export const LiveData = () => {
                                     />
                                 </Col>
                             </Row>
-                            <Row>
-                                <LapDetailsTracker
-                                    incomingData={lapData[lapData.length - 1]}
-                                />
-                            </Row>
                         </>
                     ) : (
                         <></>
                     )}
                 </Col>
+            </Row>
+            <Row>
+                <Col style={{ marginLeft: "20px" }}>
+                    <LapDetailsTracker
+                        incomingData={lapData[lapData.length - 1]}
+                    />
+                </Col>
+                <Col></Col>
             </Row>
         </div>
     )
