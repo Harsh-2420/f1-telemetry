@@ -11,6 +11,7 @@ import {
     SpeedChart,
     FuelChart,
     LiveBestLapTimes,
+    LapDetailsTracker,
 } from "../Components/LiveDataCharts"
 import "bootstrap/dist/css/bootstrap.min.css"
 import { dummyTelemetryData } from "../Data/telemetryData"
@@ -26,6 +27,10 @@ const dataQueues = {
         packetParentName: "CarStatusPackets",
         packetName: "CarStatusData",
     }),
+    lapDataQueue: new Queue({
+        packetParentName: "LapDataPackets",
+        packetName: "LapData",
+    }),
 }
 
 export const LiveData = () => {
@@ -34,6 +39,7 @@ export const LiveData = () => {
     const [selectedLap, setSelectedLap] = useState(1)
     const [carTelemetryData, setCarTelemetryData] = useState([])
     const [carStatusData, setCarStatusData] = useState([])
+    const [lapData, setLapData] = useState([])
     const [cursorX, setCursorX] = useState(null)
 
     const handleCursorMove = (e) => {
@@ -60,6 +66,10 @@ export const LiveData = () => {
                 newCarStatusFrame: {
                     frame: dataQueues.carStatusDataQueue.dequeue(),
                     setFrameFunc: setCarStatusData,
+                },
+                newLapDataFrame: {
+                    frame: dataQueues.lapDataQueue.dequeue(),
+                    setFrameFunc: setLapData,
                 },
             }
 
@@ -183,7 +193,6 @@ export const LiveData = () => {
                                           .TyresSurfaceTemperature
                                   )
                                 : console.log("Not Init")} */}
-
                             <TyreChartAlternate
                                 tireData={{
                                     telemetryData:
@@ -228,6 +237,11 @@ export const LiveData = () => {
                                         sessionBest={"1:09:23"}
                                     />
                                 </Col>
+                            </Row>
+                            <Row>
+                                <LapDetailsTracker
+                                    incomingData={lapData[lapData.length - 1]}
+                                />
                             </Row>
                         </>
                     ) : (

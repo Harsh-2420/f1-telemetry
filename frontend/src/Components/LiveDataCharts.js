@@ -1,5 +1,15 @@
-import React from "react"
-import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import React, { useState, useEffect } from "react"
+import {
+    ResponsiveContainer,
+    PieChart,
+    Pie,
+    Cell,
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    Tooltip,
+} from "recharts"
 
 export const SteeringIndicator = ({ value }) => {
     const fillPercentage = Math.min(Math.abs(value) / 100, 1)
@@ -328,5 +338,84 @@ export const RPMIndicator = ({ x, y, rpm, gear }) => {
                 </g>
             </svg>
         </PieChart>
+    )
+}
+
+export const LapDetailsTracker = ({ incomingData }) => {
+    // Issues: New Data isnt getting added
+    // We dont want this to process constantly. Only when a new lap is added. (Can we change useEffect hook to icnomingData.sector?)
+    const [data, setData] = useState([])
+
+    useEffect(() => {
+        const store = [...data]
+        let currentLapData
+        const incomingLapNum = incomingData.currentLapNum
+        if (store.length === 0) {
+            // no data yet
+            console.log("store length 0 && store populated once")
+            if (incomingData.Sector === 2) {
+                // sector 3 begins
+                currentLapData = {
+                    lapNum: incomingData.CurrentLapNum,
+                    sector1Time: incomingData.Sector1TimeInMS,
+                    sector2Time: incomingData.Sector1TimeInMS,
+                    LastLapTime: incomingData.LastLapTimeInMS,
+                    flag: false,
+                }
+                store.push(currentLapData)
+            }
+        } else if (
+            // if data exists: check if last lap info is complete (flag True)
+            //  if previous flag is true, then create a new entry with S1 and S2 info
+            incomingData.Sector === 2 &&
+            store[store.length - 1].flag === true
+        ) {
+            currentLapData = {
+                lapNum: incomingData.CurrentLapNum,
+                sector1Time: incomingData.Sector1TimeInMS,
+                sector2Time: incomingData.Sector1TimeInMS,
+                LastLapTime: incomingData.LastLapTimeInMS,
+                flag: false,
+            }
+            store.push(currentLapData)
+        }
+        // console.log(store)
+        if (store.length > 0) {
+            // if data exists
+            const latestLapDetails = store[store.length - 1]
+            if (
+                // if flag is false, so sector3 is not yet populated
+                // if currLap is a new lap
+                incomingData.sector === 1 &&
+                latestLapDetails.lapNum === incomingData.currentLapNum - 1 &&
+                latestLapDetails.flag === false
+            ) {
+                // add sector 3 info for last lap and change flag to true
+                latestLapDetails.sector3Time =
+                    incomingData.LastLapTimeInMS - latestLapDetails.sector3Time
+                latestLapDetails.flag = true
+            }
+        }
+        setData(store)
+    }, [incomingData]) // instead of using incomingData can we call useEffect only when a sector changes? --> lesser calls
+
+    console.log(data)
+    console.log(incomingData)
+
+    return (
+        <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+                <XAxis dataKey="CurrentLapNum" />
+                <YAxis yAxisId="left" />
+                <Tooltip />
+                <Line
+                    type="monotone"
+                    dataKey="LastLapTimeInMS"
+                    stroke="green"
+                    yAxisId="left"
+                    dot={false}
+                />
+            </LineChart>
+        </ResponsiveContainer>
     )
 }
