@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -10,7 +9,7 @@ import (
 )
 
 const (
-	PACKET_STORE_SIZE uint32 = 8
+	PACKET_STORE_SIZE uint32 = 4
 )
 
 type SavedPacket[T any] struct {
@@ -36,14 +35,18 @@ type PacketStore struct {
 	RecordingConfig RecordingConfig `json:"-"`
 	RecordingActive bool            `json:"-"`
 	RecordingFile   *os.File        `json:"-"`
+
+	// Socket Server
+	WSS *WebsocketServer `json:"-"`
 }
 
-func (store *PacketStore) Init() {
+func (store *PacketStore) Init(wss *WebsocketServer) {
 	store.F1CarTelemetryDataPackets = make([]SavedPacket[F1CarTelemetryDataPacket], 0, PACKET_STORE_SIZE)
 	store.F1CarMotionDataPackets = make([]SavedPacket[F1CarMotionDataPacket], 0, PACKET_STORE_SIZE)
 	store.F1LapDataPackets = make([]SavedPacket[F1LapDataPacket], 0, PACKET_STORE_SIZE)
 	store.F1CarStatusDataPackets = make([]SavedPacket[F1CarStatusDataPacket], 0, PACKET_STORE_SIZE)
 	store.RWLock = sync.RWMutex{}
+	store.WSS = wss
 }
 
 func SavePacket[T F1Packet](store *PacketStore, packet T) {
@@ -64,10 +67,14 @@ func SavePacket[T F1Packet](store *PacketStore, packet T) {
 		fmt.Println("Unsupported packet type")
 	}
 
+	WSSBroadcast[T](store.WSS, &s)
+
 	if store.RecordingConfig.IsRecordingPacket(s.Header.PacketId) {
 		RecordSavedPacket(store, &s)
 	}
 }
+
+// ==== Recording ====
 
 func RecordSavedPacket[T any](store *PacketStore, packet *SavedPacket[T]) {
 	if !store.RecordingActive || !store.RecordingConfig.IsRecordingPacket(packet.Header.PacketId) {
@@ -87,19 +94,6 @@ func RecordSavedPacket[T any](store *PacketStore, packet *SavedPacket[T]) {
 		Log.Println("Error writing packet to recording file")
 		Log.Println(err.Error())
 	}
-}
-
-func (store *PacketStore) GetSavedPacketsJSON() []byte {
-	store.RWLock.RLock()
-	defer store.RWLock.RUnlock()
-
-	data, err := json.Marshal(store)
-	if err != nil {
-		GetLogger().Printf("Failed to serialized saved packets to json due to err - %s\n", err.Error())
-		return nil
-	}
-
-	return data
 }
 
 func (store *PacketStore) StartRecording(config RecordingConfig) bool {

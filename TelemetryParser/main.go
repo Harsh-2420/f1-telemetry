@@ -36,10 +36,13 @@ func main() {
 	f1UdpClient := F1UdpClient{}
 	f1UdpClient.Init(conn)
 
-	packetStore := PacketStore{}
-	packetStore.Init()
+	wss := WebsocketServer{}
+	wss.Init()
 
-	go RunAPIServer(&packetStore)
+	packetStore := PacketStore{}
+	packetStore.Init(&wss)
+
+	go RunAPIServer(&wss)
 
 	for {
 		err := f1UdpClient.Poll(&packetStore)

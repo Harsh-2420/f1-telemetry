@@ -4,64 +4,40 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 const PORT = 8000
 
-var packetStore *PacketStore
+var websocketServer *WebsocketServer
+var WSUpgrader = websocket.Upgrader{CheckOrigin: CheckWSConnectionOrigin}
 
-func HandleLiveDataRequest(w http.ResponseWriter, req *http.Request) {
-	data := packetStore.GetSavedPacketsJSON()
-	if data == nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "Error converting telemetry data to json\n")
+func CheckWSConnectionOrigin(r *http.Request) bool {
+	return true
+}
+
+func HandleLiveDataSubscriptionRequest(w http.ResponseWriter, req *http.Request) {
+	Log.Printf("New live data subscription request from %s\n", req.RemoteAddr)
+	conn, err := WSUpgrader.Upgrade(w, req, nil)
+	if err != nil {
+		Log.Printf("Error upgrading client to websocket connection - %s\n", err)
 		return
 	}
 
-	GetLogger().Printf("Live data request, sending live packets (size = %d bytes)\n", len(data))
-
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(data)
-}
-
-func HandleStartRecordingRequest(w http.ResponseWriter, req *http.Request) {
-	GetLogger().Printf("Starting telemetry recording\n")
-
-	recordingFileName := "recording.ftr"
-	recordingConfig := MakeRecordingConfig(recordingFileName, false)
-	recordingConfig.RecordAllPackets()
-
-	if !packetStore.StartRecording(recordingConfig) {
-		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "Failed to start recording")
-		return
-	}
-
-	io.WriteString(w, "Recording Started")
-	w.WriteHeader(http.StatusOK)
-}
-
-func HandleStopRecordingRequest(w http.ResponseWriter, req *http.Request) {
-	GetLogger().Printf("Starting telemetry recording\n")
-
-	packetStore.StopRecording()
-
-	io.WriteString(w, "Recording Stopped")
-	w.WriteHeader(http.StatusOK)
+	Log.Printf("%s Subscription successful\n", req.RemoteAddr)
+	websocketServer.SubscribeNewClient(&WebsocketClient{conn, make(chan []byte, CLIENT_NEW_PACKET_CHANNEL_BUFFER_SIZE)})
 }
 
 func HandlePing(w http.ResponseWriter, _ *http.Request) {
 	io.WriteString(w, "Pong")
 }
 
-func RunAPIServer(ps *PacketStore) {
-	packetStore = ps
+func RunAPIServer(wss *WebsocketServer) {
+	websocketServer = wss
 
 	http.HandleFunc("/ping", HandlePing)
-	http.HandleFunc("/api/live", HandleLiveDataRequest)
-	http.HandleFunc("/api/start-recording", HandleStartRecordingRequest)
-	http.HandleFunc("/api/stop-recording", HandleStopRecordingRequest)
+	http.HandleFunc("/api/live", HandleLiveDataSubscriptionRequest)
 
 	GetLogger().Printf("Starting API server on port %d\n", PORT)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", PORT), nil)
