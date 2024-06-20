@@ -3,6 +3,7 @@ import { Row, Col } from "react-bootstrap"
 import { TotalTelemetryChart } from "../Components/ChartComponents"
 import { TyreChart } from "../Components/TyreChart"
 import { TyreChartAlternate } from "../Components/TyreChartAlternate"
+import RecordingIcon from "../Components/RecordingIcon"
 import {
     SteeringIndicator,
     NumberChart,
@@ -115,70 +116,76 @@ export const LiveData = () => {
     }, [])
 
     return (
-        <div
-            style={{
-                background: "#202020", //Gunmetal: 2C3539, 202020, 232c30, 262f33// DarkGrey: 1C1C1C
-                fontFamily: "Futura",
-                color: "white",
-                position: "relative",
-            }}
-        >
-            <Row>
-                <Col>
-                    <div>
-                        {carTelemetryData.length >= 1 ? (
-                            <>
-                                <TotalTelemetryChart
-                                    data={carTelemetryData}
-                                    syncId="telemetryCharts"
-                                    onMouseMove={handleCursorMove}
-                                    throttleKey="Throttle"
-                                    brakeKey="Brake"
-                                    titleLabel="Telemetry v Distance"
-                                />
+        <>
+            <RecordingIcon />
+            <div
+                style={{
+                    background: "#202020", //Gunmetal: 2C3539, 202020, 232c30, 262f33// DarkGrey: 1C1C1C
+                    fontFamily: "Futura",
+                    color: "white",
+                    position: "relative",
+                }}
+            >
+                <Row>
+                    <Col>
+                        <div>
+                            {carTelemetryData.length >= 1 ? (
+                                <>
+                                    <TotalTelemetryChart
+                                        data={carTelemetryData}
+                                        syncId="telemetryCharts"
+                                        onMouseMove={handleCursorMove}
+                                        throttleKey="Throttle"
+                                        brakeKey="Brake"
+                                        titleLabel="Telemetry v Distance"
+                                    />
 
-                                <Row
-                                //  style={{ border: "1px solid magenta" }}
-                                >
-                                    <Col xs={6} style={{}}>
-                                        <RPMIndicator
-                                            x={200}
-                                            y={120}
-                                            rpm={
-                                                carTelemetryData[
-                                                    carTelemetryData.length - 1
-                                                ].EngineRPM
-                                            }
-                                            gear={
-                                                carTelemetryData[
-                                                    carTelemetryData.length - 1
-                                                ].Gear
-                                            }
-                                        />
-                                    </Col>
-                                    <Col
-                                        xs={6}
-                                        // style={{ border: "1px solid blue" }}
+                                    <Row
+                                    //  style={{ border: "1px solid magenta" }}
                                     >
-                                        <SpeedChart
-                                            x={80}
-                                            y={60}
-                                            value={
-                                                carTelemetryData[
-                                                    carTelemetryData.length - 1
-                                                ].Speed
-                                            }
-                                        />
-                                        <SteeringIndicator
-                                            value={
-                                                carTelemetryData[
-                                                    carTelemetryData.length - 1
-                                                ].Steer
-                                            }
-                                        />
-                                    </Col>
-                                </Row>
-                                {/* <NumberChart
+                                        <Col xs={6} style={{}}>
+                                            <RPMIndicator
+                                                x={200}
+                                                y={120}
+                                                rpm={
+                                                    carTelemetryData[
+                                                        carTelemetryData.length -
+                                                            1
+                                                    ].EngineRPM
+                                                }
+                                                gear={
+                                                    carTelemetryData[
+                                                        carTelemetryData.length -
+                                                            1
+                                                    ].Gear
+                                                }
+                                            />
+                                        </Col>
+                                        <Col
+                                            xs={6}
+                                            // style={{ border: "1px solid blue" }}
+                                        >
+                                            <SpeedChart
+                                                x={80}
+                                                y={60}
+                                                value={
+                                                    carTelemetryData[
+                                                        carTelemetryData.length -
+                                                            1
+                                                    ].Speed
+                                                }
+                                            />
+                                            <SteeringIndicator
+                                                value={
+                                                    carTelemetryData[
+                                                        carTelemetryData.length -
+                                                            1
+                                                    ].Steer
+                                                }
+                                            />
+                                        </Col>
+                                    </Row>
+                                    {/* <NumberChart
                                     value={
                                         telemetryData[telemetryData.length - 1]
                                             .speed
@@ -193,83 +200,85 @@ export const LiveData = () => {
                                     }
                                     label="DRS"
                                 /> */}
-                            </>
-                        ) : (
-                            <></>
-                        )}
-                    </div>
-                </Col>
-                <Col>
-                    {carTelemetryData.length >= 1 ? (
-                        <>
-                            {/* {typeof telemetryData[telemetryData.length - 1]
+                                </>
+                            ) : (
+                                <></>
+                            )}
+                        </div>
+                    </Col>
+                    <Col>
+                        {carTelemetryData.length >= 1 ? (
+                            <>
+                                {/* {typeof telemetryData[telemetryData.length - 1]
                                 .TyresSurfaceTemperature !== "undefined"
                                 ? console.log(
                                       telemetryData[telemetryData.length - 1]
                                           .TyresSurfaceTemperature
                                   )
                                 : console.log("Not Init")} */}
-                            <TyreChartAlternate
-                                tireData={{
-                                    telemetryData:
-                                        carTelemetryData[
-                                            carTelemetryData.length - 1
-                                        ],
-                                    statusData:
-                                        carStatusData.length > 0
-                                            ? carStatusData[
-                                                  carStatusData.length - 1
-                                              ]
-                                            : 0,
-                                }}
-                            />
-                            <Row>
-                                <Col xs={4}>
-                                    <PitChart
-                                        x={100}
-                                        y={10}
-                                        pitRec1={9}
-                                        pitRec2={12}
-                                    />
-                                </Col>
-                                <Col xs={4}>
-                                    <FuelChart
-                                        x={100}
-                                        y={10}
-                                        value={
+                                <TyreChartAlternate
+                                    tireData={{
+                                        telemetryData:
+                                            carTelemetryData[
+                                                carTelemetryData.length - 1
+                                            ],
+                                        statusData:
                                             carStatusData.length > 0
                                                 ? carStatusData[
                                                       carStatusData.length - 1
-                                                  ].FuelRemainingLaps
-                                                : 0
-                                        }
-                                    />
-                                </Col>
-                                <Col xs={4}>
-                                    <LiveBestLapTimes
-                                        x={100}
-                                        y={10}
-                                        personalBest={"1:09:23"}
-                                        sessionBest={"1:09:23"}
-                                    />
-                                </Col>
-                            </Row>
-                        </>
-                    ) : (
-                        <></>
-                    )}
-                </Col>
-            </Row>
-            <Row>
-                <Col style={{ marginLeft: "20px" }}>
-                    {lapData.length >= 1 && (
-                        <LapDetailsTracker
-                            incomingData={lapData[lapData.length - 1]}
-                        />
-                    )}
-                </Col>
-                <Col></Col>
-            </Row>
-        </div>
+                                                  ]
+                                                : 0,
+                                    }}
+                                />
+                                <Row>
+                                    <Col xs={4}>
+                                        <PitChart
+                                            x={100}
+                                            y={10}
+                                            pitRec1={9}
+                                            pitRec2={12}
+                                        />
+                                    </Col>
+                                    <Col xs={4}>
+                                        <FuelChart
+                                            x={100}
+                                            y={10}
+                                            value={
+                                                carStatusData.length > 0
+                                                    ? carStatusData[
+                                                          carStatusData.length -
+                                                              1
+                                                      ].FuelRemainingLaps
+                                                    : 0
+                                            }
+                                        />
+                                    </Col>
+                                    <Col xs={4}>
+                                        <LiveBestLapTimes
+                                            x={100}
+                                            y={10}
+                                            personalBest={"1:09:23"}
+                                            sessionBest={"1:09:23"}
+                                        />
+                                    </Col>
+                                </Row>
+                            </>
+                        ) : (
+                            <></>
+                        )}
+                    </Col>
+                </Row>
+                <Row>
+                    <Col style={{ marginLeft: "20px" }}>
+                        {lapData.length >= 1 && (
+                            <LapDetailsTracker
+                                incomingData={lapData[lapData.length - 1]}
+                            />
+                        )}
+                    </Col>
+                    <Col></Col>
+                </Row>
+            </div>
+        </>
     )
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Row, Col, Button } from "react-bootstrap"
 import { DropdownComponent } from "../Components/DropdownComponent"
+import TelemetryControls from "../Components/RecordingSelection"
 import {
     Chart,
     SplitColorChart,
@@ -37,62 +38,73 @@ export const Analysis = () => {
     }
 
     return (
-        <div
-            style={{
-                background: "#202020",
-                fontFamily: "Futura",
-                color: "white",
-                position: "relative", // Make sure the parent div has a position to accommodate the absolutely positioned div
-            }}
-        >
-            <Row style={{ padding: "15px" }}>
-                <div>
-                    <Chart
-                        data={telemetryData}
-                        syncId="telemetryCharts"
-                        onMouseMove={handleCursorMove}
-                        dataKey="speed"
-                        titleLabel="Speed"
-                    />
-                </div>
-                <div>
-                    <Chart
-                        data={telemetryData}
-                        syncId="telemetryCharts"
-                        onMouseMove={handleCursorMove}
-                        dataKey="throttle"
-                        titleLabel="Throttle"
-                    />
-                </div>
-                <div>
-                    <Chart
-                        data={telemetryData}
-                        syncId="telemetryCharts"
-                        onMouseMove={handleCursorMove}
-                        dataKey="brake"
-                        // dataKeyTemp="brakeTemperature"
-                        titleLabel="Brake"
-                    />
-                </div>
-                <div>
-                    <Chart
-                        data={telemetryData}
-                        syncId="telemetryCharts"
-                        onMouseMove={handleCursorMove}
-                        dataKey="gear"
-                        titleLabel="Gear"
-                    />
-                </div>
-                <div>
-                    <Chart
-                        data={telemetryData}
-                        syncId="telemetryCharts"
-                        onMouseMove={handleCursorMove}
-                        dataKey="steering"
-                        titleLabel="Steering"
-                    />
-                </div>
-            </Row>
-        </div>
+        <>
+            <TelemetryControls
+                selectedSession={selectedSession}
+                setSelectedSession={setSelectedSession}
+                selectedTrack={selectedTrack}
+                setSelectedTrack={setSelectedTrack}
+                selectedLap={selectedLap}
+                setSelectedLap={setSelectedLap}
+                dummyTelemetryData={dummyTelemetryData}
+            />
+            <div
+                style={{
+                    background: "#202020",
+                    fontFamily: "Futura",
+                    color: "white",
+                    position: "relative", // Make sure the parent div has a position to accommodate the absolutely positioned div
+                }}
+            >
+                <Row style={{ padding: "15px" }}>
+                    <div>
+                        <Chart
+                            data={telemetryData}
+                            syncId="telemetryCharts"
+                            onMouseMove={handleCursorMove}
+                            dataKey="speed"
+                            titleLabel="Speed"
+                        />
+                    </div>
+                    <div>
+                        <Chart
+                            data={telemetryData}
+                            syncId="telemetryCharts"
+                            onMouseMove={handleCursorMove}
+                            dataKey="throttle"
+                            titleLabel="Throttle"
+                        />
+                    </div>
+                    <div>
+                        <Chart
+                            data={telemetryData}
+                            syncId="telemetryCharts"
+                            onMouseMove={handleCursorMove}
+                            dataKey="brake"
+                            // dataKeyTemp="brakeTemperature"
+                            titleLabel="Brake"
+                        />
+                    </div>
+                    <div>
+                        <Chart
+                            data={telemetryData}
+                            syncId="telemetryCharts"
+                            onMouseMove={handleCursorMove}
+                            dataKey="gear"
+                            titleLabel="Gear"
+                        />
+                    </div>
+                    <div>
+                        <Chart
+                            data={telemetryData}
+                            syncId="telemetryCharts"
+                            onMouseMove={handleCursorMove}
+                            dataKey="steering"
+                            titleLabel="Steering"
+                        />
+                    </div>
+                </Row>
+            </div>
+        </>
     )
 }

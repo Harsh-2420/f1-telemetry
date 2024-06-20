@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Row, Col, Button } from "react-bootstrap"
-import { DropdownComponent } from "../Components/DropdownComponent"
-import Recording from "../Components/Recording"
+// import { DropdownComponent } from "../Components/DropdownComponent"
+// import Recording from "../Components/RecordingIcon"
 // import MultipleSelectChip from "../Components/DropdownComponent"
 import {
     Chart,
@@ -49,22 +49,12 @@ export const Telemetry = () => {
                 position: "relative",
             }}
         >
-            {/* <div
-                style={{
-                    backgroundImage: `url(${arrow2})`,
-                    opacity: "0.1",
-                    position: "absolute", // Set position to absolute
-                    top: 0,
-                    left: 0,
-                    width: "100%", // Set width to 100%
-                    height: "100%", // Set height to 100%
-                    // zIndex: "0",
-                }}
-            ></div> */}
             <div style={{ padding: "30px" }}>
                 <Row className="align-items-center" style={{}}>
-                    {combinedTelemetryToggle ? (
-                        <>{/* <Recording /> */}</>
+                    {/* {combinedTelemetryToggle ? (
+                        <>
+                            <Recording />
+                        </>
                     ) : (
                         <>
                             <Col xs="auto" style={{}}>
@@ -92,7 +82,7 @@ export const Telemetry = () => {
                                 />
                             </Col>
                         </>
-                    )}
+                    )} */}
                     <Col
                         style={{
                             textAlign: "right",

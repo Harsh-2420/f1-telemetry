@@ -18,7 +18,15 @@ export const DropdownComponent = ({ label, options, selected, onSelect }) => {
         >
             <Row className="align-items-center">
                 <Col xs="auto">
-                    <label style={{ marginRight: "10px", marginBottom: 0 }}>
+                    <label
+                        style={{
+                            // marginRight: "5px",
+                            marginBottom: 0,
+                            fontWeight: "600",
+                            letterSpacing: "2px",
+                            fontSize: "12px",
+                        }}
+                    >
                         {label}
                     </label>
                 </Col>
