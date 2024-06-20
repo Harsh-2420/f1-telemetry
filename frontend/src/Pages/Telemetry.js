@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Row, Col, Button } from "react-bootstrap"
 import { DropdownComponent } from "../Components/DropdownComponent"
+import Recording from "../Components/Recording"
 // import MultipleSelectChip from "../Components/DropdownComponent"
 import {
     Chart,
@@ -23,8 +24,7 @@ export const Telemetry = () => {
     const [telemetryData, setTelemetryData] = useState([])
     const [cursorX, setCursorX] = useState(null)
 
-    const [combinedTelemetryToggle, setCombinedTelemetryToggle] =
-        useState(false)
+    const [combinedTelemetryToggle, setCombinedTelemetryToggle] = useState(true)
 
     const toggleCombinedTelemetry = () => {
         setCombinedTelemetryToggle(!combinedTelemetryToggle)
@@ -63,30 +63,36 @@ export const Telemetry = () => {
             ></div> */}
             <div style={{ padding: "30px" }}>
                 <Row className="align-items-center" style={{}}>
-                    <Col xs="auto" style={{}}>
-                        <DropdownComponent
-                            label="Session:"
-                            options={dummyTelemetryData.sessions}
-                            selected={selectedSession}
-                            onSelect={setSelectedSession}
-                        />
-                    </Col>
-                    <Col xs="auto">
-                        <DropdownComponent
-                            label="Track:"
-                            options={dummyTelemetryData.tracks}
-                            selected={selectedTrack}
-                            onSelect={setSelectedTrack}
-                        />
-                    </Col>
-                    <Col xs="auto">
-                        <DropdownComponent
-                            label="Lap:"
-                            options={dummyTelemetryData.laps}
-                            selected={selectedLap}
-                            onSelect={setSelectedLap}
-                        />
-                    </Col>
+                    {combinedTelemetryToggle ? (
+                        <>{/* <Recording /> */}</>
+                    ) : (
+                        <>
+                            <Col xs="auto" style={{}}>
+                                <DropdownComponent
+                                    label="Session:"
+                                    options={dummyTelemetryData.sessions}
+                                    selected={selectedSession}
+                                    onSelect={setSelectedSession}
+                                />
+                            </Col>
+                            <Col xs="auto">
+                                <DropdownComponent
+                                    label="Track:"
+                                    options={dummyTelemetryData.tracks}
+                                    selected={selectedTrack}
+                                    onSelect={setSelectedTrack}
+                                />
+                            </Col>
+                            <Col xs="auto">
+                                <DropdownComponent
+                                    label="Lap:"
+                                    options={dummyTelemetryData.laps}
+                                    selected={selectedLap}
+                                    onSelect={setSelectedLap}
+                                />
+                            </Col>
+                        </>
+                    )}
                     <Col
                         style={{
                             textAlign: "right",

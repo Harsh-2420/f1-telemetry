@@ -45,58 +45,53 @@ export const Analysis = () => {
                 position: "relative", // Make sure the parent div has a position to accommodate the absolutely positioned div
             }}
         >
-            <Row>
-                <Col>
-                    <div>
-                        <Chart
-                            data={telemetryData}
-                            syncId="telemetryCharts"
-                            onMouseMove={handleCursorMove}
-                            dataKey="speed"
-                            titleLabel="Speed v Distance"
-                        />
-                    </div>
-                    <div>
-                        <Chart
-                            data={telemetryData}
-                            syncId="telemetryCharts"
-                            onMouseMove={handleCursorMove}
-                            dataKey="throttle"
-                            titleLabel="Throttle Input v Distance"
-                        />
-                    </div>
-                    <div>
-                        <Chart
-                            data={telemetryData}
-                            syncId="telemetryCharts"
-                            onMouseMove={handleCursorMove}
-                            dataKey="brake"
-                            dataKeyTemp="brakeTemperature"
-                            titleLabel="Brake v Distance"
-                        />
-                    </div>
-                    <div>
-                        <Chart
-                            data={telemetryData}
-                            syncId="telemetryCharts"
-                            onMouseMove={handleCursorMove}
-                            dataKey="gear"
-                            titleLabel="Gear v Distance"
-                        />
-                    </div>
-                    <div>
-                        <Chart
-                            data={telemetryData}
-                            syncId="telemetryCharts"
-                            onMouseMove={handleCursorMove}
-                            dataKey="steering"
-                            titleLabel="Steering v Distance"
-                        />
-                    </div>
-                </Col>
-                <Col>
-                    {/* <TyreChartAlternate tireData={telemetryData} /> */}
-                </Col>
+            <Row style={{ padding: "15px" }}>
+                <div>
+                    <Chart
+                        data={telemetryData}
+                        syncId="telemetryCharts"
+                        onMouseMove={handleCursorMove}
+                        dataKey="speed"
+                        titleLabel="Speed"
+                    />
+                </div>
+                <div>
+                    <Chart
+                        data={telemetryData}
+                        syncId="telemetryCharts"
+                        onMouseMove={handleCursorMove}
+                        dataKey="throttle"
+                        titleLabel="Throttle"
+                    />
+                </div>
+                <div>
+                    <Chart
+                        data={telemetryData}
+                        syncId="telemetryCharts"
+                        onMouseMove={handleCursorMove}
+                        dataKey="brake"
+                        // dataKeyTemp="brakeTemperature"
+                        titleLabel="Brake"
+                    />
+                </div>
+                <div>
+                    <Chart
+                        data={telemetryData}
+                        syncId="telemetryCharts"
+                        onMouseMove={handleCursorMove}
+                        dataKey="gear"
+                        titleLabel="Gear"
+                    />
+                </div>
+                <div>
+                    <Chart
+                        data={telemetryData}
+                        syncId="telemetryCharts"
+                        onMouseMove={handleCursorMove}
+                        dataKey="steering"
+                        titleLabel="Steering"
+                    />
+                </div>
             </Row>
         </div>
     )

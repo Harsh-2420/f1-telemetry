@@ -27,58 +27,68 @@ export const Chart = ({
         setTempLineOpacity(tempLineOpacity === 1 ? 0.1 : 1)
     }
 
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div
+                    style={{
+                        backgroundColor: "#1e222a",
+                        border: "1px solid #cccccc",
+                        borderRadius: "10px",
+                        padding: "10px",
+                        boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.1)",
+                    }}
+                >
+                    <p style={{ margin: 0 }}>{`Distance: ${label}`}</p>
+                    <p style={{ margin: 0 }}>{`Value: ${payload[0].value}`}</p>
+                </div>
+            )
+        }
+        return null
+    }
+
     return (
-        <>
-            <h4 style={{ padding: "1%", marginLeft: "4%" }}>{titleLabel}</h4>
-            <ResponsiveContainer width="100%" height={300}>
+        <div
+            style={{
+                width: "100%",
+                padding: "1%",
+                background: "#282c34",
+                borderRadius: "15px",
+                marginBottom: "10px",
+            }}
+        >
+            <h6 style={{ marginLeft: "2%", fontSize: "14px" }}>{titleLabel}</h6>
+            <ResponsiveContainer width="100%" height={150}>
                 <LineChart
                     data={data}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
                     syncId={syncId}
                     onMouseMove={onMouseMove}
                 >
-                    <XAxis dataKey="distance" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip />
+                    <XAxis dataKey="distance" tick={false} />
+                    <YAxis
+                        yAxisId="left"
+                        // ticks={[0, 1, 2]}
+                        tick={{ fontSize: 10, fill: "#d3d3d3" }}
+                    />
+                    <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        // ticks={[0, 1, 2]}
+                        tick={{ fontSize: 10, fill: "#d3d3d3" }}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
 
-                    {dataKey === "brake" ? (
-                        <>
-                            <Rectangle
-                                width={10}
-                                height={300}
-                                fill="transparent"
-                                onMouseUp={handleTempLineClick}
-                                onMouseDown={handleTempLineClick}
-                            />
-
-                            <Line
-                                type="monotone"
-                                dataKey={dataKeyTemp}
-                                stroke="#ff7300"
-                                opacity={tempLineOpacity}
-                                onClick={handleTempLineClick}
-                                yAxisId="right"
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey={dataKey}
-                                stroke="#8884d8"
-                                yAxisId="left"
-                            />
-                        </>
-                    ) : (
-                        <Line
-                            type="monotone"
-                            dataKey={dataKey}
-                            stroke="#8884d8"
-                            activeDot={{ r: 8 }}
-                            yAxisId="left"
-                        />
-                    )}
+                    <Line
+                        type="monotone"
+                        dataKey={dataKey}
+                        stroke="#8884d8"
+                        activeDot={{ r: 8 }}
+                        yAxisId="left"
+                    />
                 </LineChart>
             </ResponsiveContainer>
-        </>
+        </div>
     )
 }
 
