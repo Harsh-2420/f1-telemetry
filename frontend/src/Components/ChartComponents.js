@@ -12,7 +12,6 @@ import {
     Bar,
     Rectangle,
 } from "recharts"
-
 export const Chart = ({
     data,
     syncId,
