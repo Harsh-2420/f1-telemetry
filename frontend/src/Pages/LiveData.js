@@ -117,7 +117,23 @@ export const LiveData = () => {
 
     return (
         <>
-            <RecordingIcon />
+            <Row>
+                <Col>
+                    <RecordingIcon />
+                </Col>
+                <Col>
+                    {/* <FuelChart
+                        x={100}
+                        y={10}
+                        value={
+                            carStatusData.length > 0
+                                ? carStatusData[carStatusData.length - 1]
+                                      .FuelRemainingLaps
+                                : 0
+                        }
+                    /> */}
+                </Col>
+            </Row>
             <div
                 style={{
                     background: "#202020", //Gunmetal: 2C3539, 202020, 232c30, 262f33// DarkGrey: 1C1C1C
@@ -144,6 +160,7 @@ export const LiveData = () => {
                                     //  style={{ border: "1px solid magenta" }}
                                     >
                                         <Col xs={6} style={{}}>
+                                            {/* <div className="live-data-component-container"> */}
                                             <RPMIndicator
                                                 x={200}
                                                 y={120}
@@ -160,11 +177,10 @@ export const LiveData = () => {
                                                     ].Gear
                                                 }
                                             />
+                                            {/* </div> */}
                                         </Col>
-                                        <Col
-                                            xs={6}
-                                            // style={{ border: "1px solid blue" }}
-                                        >
+                                        <Col xs={6}>
+                                            {/* <div className="live-data-component-container"> */}
                                             <SpeedChart
                                                 x={80}
                                                 y={60}
@@ -183,6 +199,7 @@ export const LiveData = () => {
                                                     ].Steer
                                                 }
                                             />
+                                            {/* </div> */}
                                         </Col>
                                     </Row>
                                     {/* <NumberChart

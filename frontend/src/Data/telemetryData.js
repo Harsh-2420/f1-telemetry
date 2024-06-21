@@ -1,6 +1,10 @@
 export const dummyTelemetryData = {
     sessions: ["Race", "Qualifying"],
-    tracks: ["Track 1", "Track 2"],
+    tracks: [
+        "Bahrain International Race Circuit",
+        "Spanish Grand Prix",
+        "Canadian Gilles Villneauve Cicuit Canadian Gilles Villneauve Cicuit",
+    ],
     laps: [1, 2, 3, 4, 5],
     telemetry: [
         {

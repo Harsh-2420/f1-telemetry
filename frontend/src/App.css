@@ -156,3 +156,17 @@
         opacity: 0.5;
     }
 }
+
+/* ------------------------------------------------ */
+/* RECORDING COMPONENT */
+
+.live-data-component-container {
+    /* display: flex; */
+    /* align-items: center; */
+    /* margin-top: 20px; */
+    /* display: inline-block; */
+    /* padding: 15px; */
+    /* margin: 5px; */
+    background-color: #282c34;
+    border-radius: 12px;
+}
