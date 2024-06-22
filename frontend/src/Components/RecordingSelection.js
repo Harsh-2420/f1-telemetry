@@ -1,6 +1,9 @@
 import React from "react"
 import { Row, Col } from "react-bootstrap"
-import { DropdownComponent } from "./DropdownComponent" // Adjust the import path as per your project structure
+import {
+    MultiSelectDropdownComponent,
+    UnstyledSelectIntroduction,
+} from "./DropdownComponent" // Adjust the import path as per your project structure
 
 const TelemetryControls = ({
     selectedSession,
@@ -24,7 +27,7 @@ const TelemetryControls = ({
     >
         <Row className="align-items-center">
             <Col xs="auto">
-                <DropdownComponent
+                <UnstyledSelectIntroduction
                     label="SESSION"
                     options={dummyTelemetryData.sessions}
                     selected={selectedSession}
@@ -32,7 +35,7 @@ const TelemetryControls = ({
                 />
             </Col>
             <Col xs="auto">
-                <DropdownComponent
+                <UnstyledSelectIntroduction
                     label="TRACK"
                     options={dummyTelemetryData.tracks}
                     selected={selectedTrack}
@@ -40,7 +43,7 @@ const TelemetryControls = ({
                 />
             </Col>
             <Col xs="auto">
-                <DropdownComponent
+                <MultiSelectDropdownComponent
                     label="LAP"
                     options={dummyTelemetryData.laps}
                     selected={selectedLap}

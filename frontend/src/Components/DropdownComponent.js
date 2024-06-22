@@ -1,4 +1,4 @@
-import { Row, Col } from "react-bootstrap"
+import { Row, Col, Dropdown } from "react-bootstrap"
 import React, { useState } from "react"
 // import  from "react"
 import PropTypes from "prop-types"
@@ -7,7 +7,87 @@ import { Option as BaseOption, optionClasses } from "@mui/base/Option"
 import { styled } from "@mui/system"
 import UnfoldMoreRoundedIcon from "@mui/icons-material/UnfoldMoreRounded"
 
-export function DropdownComponent({ label, options, selected, onSelect }) {
+export function UnstyledSelectIntroduction({
+    label,
+    options,
+    selected,
+    onSelect,
+}) {
+    return (
+        <Row style={{ alignItems: "center" }}>
+            <Col>
+                <label
+                    style={{
+                        marginBottom: 0,
+                        fontWeight: "600",
+                        letterSpacing: "2px",
+                        fontSize: "12px",
+                    }}
+                >
+                    {label}
+                </label>
+            </Col>
+            <Col>
+                <Select
+                    defaultValue={options[0]}
+                    // placeholder="Select"
+                    style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        width: "200px", // Set a fixed width as per your requirement
+                    }}
+                    // onChange={handleChange}
+                >
+                    {options.map((option, index) => (
+                        <Option
+                            key={index}
+                            value={option}
+                            style={{
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                            }}
+                        >
+                            {option}
+                        </Option>
+                    ))}
+                </Select>
+            </Col>
+        </Row>
+    )
+}
+
+const Select = React.forwardRef(function CustomSelect(props, ref) {
+    const slots = {
+        root: Button,
+        listbox: Listbox,
+        popup: Popup,
+        ...props.slots,
+    }
+
+    return <BaseSelect {...props} ref={ref} slots={slots} />
+})
+
+Select.propTypes = {
+    /**
+     * The components used for each slot inside the Select.
+     * Either a string to use a HTML element or a component.
+     * @default {}
+     */
+    slots: PropTypes.shape({
+        listbox: PropTypes.elementType,
+        popup: PropTypes.elementType,
+        root: PropTypes.elementType,
+    }),
+}
+
+export function MultiSelectDropdownComponent({
+    label,
+    options,
+    selected,
+    onSelect,
+}) {
     // selectedOptions is here just to be used later
     const [selectedOptions, setSelectedOptions] = useState([String(options[0])])
 
