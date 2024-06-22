@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Row, Col, Button } from "react-bootstrap"
+import F1 from "../images/F1.png"
+import F123 from "../images/f123-light.png"
 // import { DropdownComponent } from "../Components/DropdownComponent"
 // import Recording from "../Components/RecordingIcon"
 // import MultipleSelectChip from "../Components/DropdownComponent"
@@ -51,38 +53,21 @@ export const Telemetry = () => {
         >
             <div style={{ padding: "30px" }}>
                 <Row className="align-items-center" style={{}}>
-                    {/* {combinedTelemetryToggle ? (
-                        <>
-                            <Recording />
-                        </>
-                    ) : (
-                        <>
-                            <Col xs="auto" style={{}}>
-                                <DropdownComponent
-                                    label="Session:"
-                                    options={dummyTelemetryData.sessions}
-                                    selected={selectedSession}
-                                    onSelect={setSelectedSession}
-                                />
-                            </Col>
-                            <Col xs="auto">
-                                <DropdownComponent
-                                    label="Track:"
-                                    options={dummyTelemetryData.tracks}
-                                    selected={selectedTrack}
-                                    onSelect={setSelectedTrack}
-                                />
-                            </Col>
-                            <Col xs="auto">
-                                <DropdownComponent
-                                    label="Lap:"
-                                    options={dummyTelemetryData.laps}
-                                    selected={selectedLap}
-                                    onSelect={setSelectedLap}
-                                />
-                            </Col>
-                        </>
-                    )} */}
+                    <Col style={{ display: "flex", alignItems: "center" }}>
+                        <img
+                            src={F123}
+                            style={{ width: "200px", marginRight: "10px" }}
+                        />
+                        <span
+                            style={{
+                                fontWeight: "bold",
+                                letterSpacing: "1.5px",
+                            }}
+                        >
+                            &nbsp; Telemetry Analysis
+                        </span>
+                    </Col>
+
                     <Col
                         style={{
                             textAlign: "right",
@@ -91,7 +76,13 @@ export const Telemetry = () => {
                         <Button
                             id="live-data-toggle"
                             onClick={toggleCombinedTelemetry}
+                            style={{
+                                fontWeight: "bold",
+                                letterSpacing: "1px",
+                                fontSize: "14px",
+                            }}
                         >
+                            {/* {combinedTelemetryToggle ? "LIVE DATA" : "ANALYSIS"} */}
                             {combinedTelemetryToggle ? "Live Data" : "Analysis"}
                         </Button>
                     </Col>
