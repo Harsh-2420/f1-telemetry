@@ -119,7 +119,7 @@ export const NumberChart = ({ value, label }) => {
     )
 }
 
-export const PitChart = ({ x, y, pitRec1, pitRec2, currLap }) => {
+export const PitChart = ({ pitRec1, pitRec2, currLap }) => {
     let boxClass
     if (currLap < pitRec1) {
         boxClass = "background-neutral"
@@ -141,7 +141,7 @@ export const PitChart = ({ x, y, pitRec1, pitRec2, currLap }) => {
         </div>
     )
 }
-export const FuelChart = ({ x, y, value }) => {
+export const FuelChart = ({ value }) => {
     let backgroundClass
     if (value > 0) {
         backgroundClass = "background-positive"
@@ -169,7 +169,18 @@ export const FuelChart = ({ x, y, value }) => {
     )
 }
 
-export const LiveBestLapTimes = ({ x, y, lastLap, sessionBest }) => {
+export const WeatherInfo = ({ value }) => {
+    return (
+        <div className="element-info-container">
+            <div className="element-info">Weather Info</div>
+            <div className={`background`}>
+                <span className="pit-text">{value}</span>
+            </div>
+        </div>
+    )
+}
+
+export const LiveBestLapTimes = ({ lastLap, sessionBest }) => {
     function parseTimeString(timeString) {
         const [minutes, seconds, milliseconds] = timeString
             .split(":")
@@ -230,6 +241,57 @@ export const LiveBestLapTimes = ({ x, y, lastLap, sessionBest }) => {
     )
 }
 
+export const TyreInfo = ({ tyreData }) => {
+    const actualTyreCompoundsMapping = {
+        16: "C5",
+        17: "C4",
+        18: "C4",
+        19: "C2",
+        20: "C1",
+        21: "C0",
+        7: "inter",
+        8: "wet",
+    }
+    const visualTyreCompoundsMapping = {
+        16: "soft",
+        17: "medium",
+        18: "hard",
+        7: "inter",
+        8: "wet",
+    }
+    const currentActualCompound =
+        actualTyreCompoundsMapping[tyreData.statusData.ActualTyreCompound]
+    const currentVisualCompound =
+        visualTyreCompoundsMapping[tyreData.statusData.VisualTyreCompound]
+    const tyreAge = tyreData.statusData.TyresAgeLaps
+
+    let boxClass
+    if (currentVisualCompound === "soft") {
+        boxClass = "tyre-soft"
+    } else if (currentVisualCompound === "medium") {
+        boxClass = "tyre-medium"
+    } else if (currentVisualCompound === "hard") {
+        boxClass = "tyre-hard"
+    } else if (currentVisualCompound === "inter") {
+        boxClass = "tyre-inter"
+    } else {
+        boxClass = "tyre-wet"
+    }
+
+    return (
+        <div className="element-info-container">
+            <div className="element-info">Tyre Info</div>
+            <div className={`tyre-compound-container ${boxClass}`}>
+                <span className="tyre-compound-text">
+                    {currentActualCompound}
+                </span>
+            </div>
+            &nbsp;&nbsp;&nbsp;
+            <span className="tyre-info-text">{tyreAge} Laps</span>
+        </div>
+    )
+}
+
 export const SpeedChart = ({ x, y, value }) => {
     return (
         <div className="element-info-container">
@@ -284,7 +346,7 @@ export const RPMIndicator = ({ x, y, rpm, gear }) => {
                         fill="#F6C324"
                         fontSize="30"
                     >
-                        {gear}
+                        {gear < 0 ? "R" : gear}
                     </text>
                 </g>
             </svg>

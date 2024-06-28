@@ -5,6 +5,7 @@ import { TyreChart } from "../Components/TyreChart"
 import { TyreChartAlternate } from "../Components/TyreChartAlternate"
 import RecordingIcon from "../Components/RecordingIcon"
 import {
+    WeatherInfo,
     SteeringIndicator,
     NumberChart,
     PitChart,
@@ -13,6 +14,7 @@ import {
     FuelChart,
     LiveBestLapTimes,
     LapDetailsTracker,
+    TyreInfo,
 } from "../Components/LiveDataCharts"
 import "bootstrap/dist/css/bootstrap.min.css"
 import { dummyTelemetryData } from "../Data/telemetryData"
@@ -117,128 +119,34 @@ export const LiveData = () => {
 
     return (
         <>
-            <Row>
-                <Col>
-                    <RecordingIcon />
-                </Col>
-                <Col>
-                    {/* <FuelChart
-                        x={100}
-                        y={10}
-                        value={
-                            carStatusData.length > 0
-                                ? carStatusData[carStatusData.length - 1]
-                                      .FuelRemainingLaps
-                                : 0
-                        }
-                    /> */}
-                </Col>
-            </Row>
-            <div
-                style={{
-                    background: "#202020", //Gunmetal: 2C3539, 202020, 232c30, 262f33// DarkGrey: 1C1C1C
-                    fontFamily: "Futura",
-                    color: "white",
-                    position: "relative",
-                }}
-            >
-                <Row>
-                    <Col>
-                        <div>
-                            {carTelemetryData.length >= 1 ? (
-                                <>
-                                    <TotalTelemetryChart
-                                        data={carTelemetryData}
-                                        syncId="telemetryCharts"
-                                        onMouseMove={handleCursorMove}
-                                        throttleKey="Throttle"
-                                        brakeKey="Brake"
-                                        titleLabel="Telemetry v Distance"
-                                    />
-
-                                    <Row
-                                    //  style={{ border: "1px solid magenta" }}
-                                    >
-                                        <Col xs={6} style={{}}>
-                                            {/* <div className="live-data-component-container"> */}
-
-                                            <RPMIndicator
-                                                x={200}
-                                                y={120}
-                                                rpm={
-                                                    carTelemetryData[
-                                                        carTelemetryData.length -
-                                                            1
-                                                    ].EngineRPM
-                                                }
-                                                gear={
-                                                    carTelemetryData[
-                                                        carTelemetryData.length -
-                                                            1
-                                                    ].Gear
-                                                }
-                                            />
-                                            {/* </div> */}
-                                        </Col>
-                                        <Col xs={6}>
-                                            {/* <div className="live-data-component-container"> */}
-                                            <div className="speed-live-data-container">
-                                                <SpeedChart
-                                                    x={80}
-                                                    y={60}
-                                                    value={
-                                                        carTelemetryData[
-                                                            carTelemetryData.length -
-                                                                1
-                                                        ].Speed
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="steering-live-data-container">
-                                                <SteeringIndicator
-                                                    value={
-                                                        carTelemetryData[
-                                                            carTelemetryData.length -
-                                                                1
-                                                        ].Steer
-                                                    }
-                                                />{" "}
-                                            </div>
-
-                                            {/* </div> */}
-                                        </Col>
-                                    </Row>
-                                    {/* <NumberChart
-                                    value={
-                                        telemetryData[telemetryData.length - 1]
-                                            .speed
-                                    }
-                                    label="Speed"
+            {carTelemetryData.length >= 1 ? (
+                <>
+                    <Row>
+                        <Col>
+                            <RecordingIcon />
+                        </Col>
+                        <Col></Col>
+                    </Row>
+                    <div
+                        style={{
+                            background: "#202020", //Gunmetal: 2C3539, 202020, 232c30, 262f33// DarkGrey: 1C1C1C
+                            fontFamily: "Futura",
+                            color: "white",
+                            position: "relative",
+                        }}
+                    >
+                        <Row>
+                            <Col xs={8}>
+                                <TotalTelemetryChart
+                                    data={carTelemetryData}
+                                    syncId="telemetryCharts"
+                                    onMouseMove={handleCursorMove}
+                                    throttleKey="Throttle"
+                                    brakeKey="Brake"
+                                    titleLabel="Telemetry v Distance"
                                 />
-
-                                <NumberChart
-                                    value={
-                                        telemetryData[telemetryData.length - 1]
-                                            .drs
-                                    }
-                                    label="DRS"
-                                /> */}
-                                </>
-                            ) : (
-                                <></>
-                            )}
-                        </div>
-                    </Col>
-                    <Col>
-                        {carTelemetryData.length >= 1 ? (
-                            <>
-                                {/* {typeof telemetryData[telemetryData.length - 1]
-                                .TyresSurfaceTemperature !== "undefined"
-                                ? console.log(
-                                      telemetryData[telemetryData.length - 1]
-                                          .TyresSurfaceTemperature
-                                  )
-                                : console.log("Not Init")} */}
+                            </Col>
+                            <Col xs={4}>
                                 <TyreChartAlternate
                                     tireData={{
                                         telemetryData:
@@ -253,12 +161,64 @@ export const LiveData = () => {
                                                 : 0,
                                     }}
                                 />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col xs={5}>
                                 <Row>
+                                    <Col xs={6} style={{}}>
+                                        <RPMIndicator
+                                            x={200}
+                                            y={120}
+                                            rpm={
+                                                carTelemetryData[
+                                                    carTelemetryData.length - 1
+                                                ].EngineRPM
+                                            }
+                                            gear={
+                                                carTelemetryData[
+                                                    carTelemetryData.length - 1
+                                                ].Gear
+                                            }
+                                        />
+                                    </Col>
+                                    <Col xs={6}>
+                                        <div className="speed-live-data-container">
+                                            <SpeedChart
+                                                x={80}
+                                                y={60}
+                                                value={
+                                                    carTelemetryData[
+                                                        carTelemetryData.length -
+                                                            1
+                                                    ].Speed
+                                                }
+                                            />
+                                        </div>
+                                        <div className="steering-live-data-container">
+                                            <SteeringIndicator
+                                                value={
+                                                    carTelemetryData[
+                                                        carTelemetryData.length -
+                                                            1
+                                                    ].Steer
+                                                }
+                                            />{" "}
+                                        </div>
+                                    </Col>
+                                </Row>
+                            </Col>
+                            <Col xs={7}>
+                                <Row
+                                    style={{
+                                        // border: "1px solid red",
+                                        marginRight: "3%",
+                                        marginBottom: "3%",
+                                    }}
+                                >
                                     <Col xs={4}>
                                         <div className="live-data-container">
                                             <PitChart
-                                                x={100}
-                                                y={50}
                                                 pitRec1={9}
                                                 pitRec2={12}
                                                 currLap={7}
@@ -268,8 +228,6 @@ export const LiveData = () => {
                                     <Col xs={4}>
                                         <div className="live-data-container">
                                             <FuelChart
-                                                x={100}
-                                                y={50}
                                                 value={
                                                     carStatusData.length > 0
                                                         ? carStatusData[
@@ -281,36 +239,67 @@ export const LiveData = () => {
                                             />
                                         </div>
                                     </Col>
-                                </Row>
-                                <Row>
                                     <Col xs={4}>
+                                        <div className="live-data-container">
+                                            <TyreInfo
+                                                tyreData={{
+                                                    telemetryData:
+                                                        carTelemetryData[
+                                                            carTelemetryData.length -
+                                                                1
+                                                        ],
+                                                    statusData:
+                                                        carStatusData.length > 0
+                                                            ? carStatusData[
+                                                                  carStatusData.length -
+                                                                      1
+                                                              ]
+                                                            : 0,
+                                                }}
+                                            />
+                                        </div>
+                                    </Col>
+                                </Row>
+                                <Row
+                                    style={{
+                                        marginRight: "3%",
+                                        marginBottom: "3%",
+                                    }}
+                                >
+                                    <Col xs={6}>
                                         <div className="lap-info-data-container">
                                             <LiveBestLapTimes
-                                                x={100}
-                                                y={50}
                                                 lastLap={"1:09:83"}
                                                 sessionBest={"1:10:23"}
                                             />
                                         </div>
                                     </Col>
+                                    <Col xs={6}>
+                                        <div className="lap-info-data-container">
+                                            <WeatherInfo value={"sunny"} />
+                                        </div>
+                                    </Col>
                                 </Row>
-                            </>
-                        ) : (
-                            <></>
-                        )}
-                    </Col>
-                </Row>
-                <Row>
-                    <Col style={{ marginLeft: "20px" }}>
-                        {lapData.length >= 1 && (
-                            <LapDetailsTracker
-                                incomingData={lapData[lapData.length - 1]}
-                            />
-                        )}
-                    </Col>
-                    <Col></Col>
-                </Row>
-            </div>
+                            </Col>
+                        </Row>
+
+                        <Row>
+                            <Col style={{ marginLeft: "20px" }}>
+                                {lapData.length >= 1 && (
+                                    <LapDetailsTracker
+                                        incomingData={
+                                            lapData[lapData.length - 1]
+                                        }
+                                    />
+                                )}
+                            </Col>
+                            <Col></Col>
+                        </Row>
+                    </div>
+                </>
+            ) : (
+                <></>
+            )}
         </>
     )
 }

@@ -315,7 +315,7 @@ export const TyreChartAlternate = ({ tireData }) => {
                         latestTire.tyre.surfaceTemperature.surfaceFrontRight,
                         currentActualCompound
                     )}
-                    {TyreDetails(
+                    {/* {TyreDetails(
                         410,
                         25,
                         60,
@@ -329,7 +329,7 @@ export const TyreChartAlternate = ({ tireData }) => {
                         90,
                         90,
                         tireData.statusData.TyresAgeLaps
-                    )}
+                    )} */}
                 </g>
             </svg>
         </>
