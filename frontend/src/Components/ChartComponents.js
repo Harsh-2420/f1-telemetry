@@ -101,9 +101,37 @@ export const TotalTelemetryChart = ({
     brakeKey,
     titleLabel,
 }) => {
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div
+                    style={{
+                        backgroundColor: "#1e222a",
+                        border: "1px solid #cccccc",
+                        borderRadius: "10px",
+                        padding: "25px",
+                        paddingBottom: "15px",
+                        boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.1)",
+                    }}
+                >
+                    {payload.map((entry, index) => (
+                        <p key={index}>
+                            <span>{`${entry.name}: `}</span>
+                            {`${entry.value}`}
+                        </p>
+                    ))}
+                </div>
+            )
+        }
+
+        return null
+    }
+
     return (
         <>
-            <h4 style={{ padding: "1%", marginLeft: "4%" }}>{titleLabel}</h4>
+            <h6 style={{ padding: "1%", marginLeft: "4%", fontSize: "16px" }}>
+                {titleLabel}
+            </h6>
             <ResponsiveContainer width="100%" height={300}>
                 <LineChart
                     data={data}
@@ -111,15 +139,23 @@ export const TotalTelemetryChart = ({
                     syncId={syncId}
                     onMouseMove={onMouseMove}
                 >
-                    <XAxis dataKey="distance" />
-                    <YAxis yAxisId="left" domain={[0, 100]} />
+                    <XAxis
+                        dataKey="distance"
+                        tick={{ fontSize: 12, fill: "#fff" }}
+                        tickLine={false}
+                    />
+                    <YAxis
+                        yAxisId="left"
+                        domain={[0, 100]}
+                        tick={{ fontSize: 12, fill: "#fff" }}
+                    />
                     <YAxis
                         yAxisId="right"
                         orientation="right"
                         domain={[0, 100]}
+                        tick={{ fontSize: 12, fill: "#fff" }}
                     />
-                    <Tooltip />
-
+                    <Tooltip content={<CustomTooltip />} />
                     <Line
                         type="monotone"
                         dataKey={throttleKey}

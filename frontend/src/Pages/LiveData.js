@@ -137,7 +137,7 @@ export const LiveData = () => {
                                     onMouseMove={handleCursorMove}
                                     throttleKey="Throttle"
                                     brakeKey="Brake"
-                                    titleLabel="Telemetry v Distance"
+                                    titleLabel="Throttle / Brake"
                                 />
                             </Col>
                             <Col xs={4}>

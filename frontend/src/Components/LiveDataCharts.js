@@ -126,9 +126,9 @@ export const PitChart = ({ pitRec1, pitRec2, currLap }) => {
     if (currLap < pitRec1) {
         boxClass = "background-neutral"
     } else if (currLap >= pitRec1 && currLap <= pitRec2) {
-        boxClass = "background-green"
+        boxClass = "background-positive"
     } else {
-        boxClass = "background-red"
+        boxClass = "background-negative"
     }
 
     return (
