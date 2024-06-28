@@ -50,6 +50,14 @@ const TelemetryControls = ({
                     onSelect={setSelectedLap}
                 />
             </Col>
+            <Col xs="auto">
+                <MultiSelectDropdownComponent
+                    label="DRIVER"
+                    options={dummyTelemetryData.laps}
+                    selected={selectedLap}
+                    onSelect={setSelectedLap}
+                />
+            </Col>
         </Row>
     </div>
 )

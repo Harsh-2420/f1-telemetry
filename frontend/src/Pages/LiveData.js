@@ -121,12 +121,6 @@ export const LiveData = () => {
         <>
             {carTelemetryData.length >= 1 ? (
                 <>
-                    <Row>
-                        <Col>
-                            <RecordingIcon />
-                        </Col>
-                        <Col></Col>
-                    </Row>
                     <div
                         style={{
                             background: "#202020", //Gunmetal: 2C3539, 202020, 232c30, 262f33// DarkGrey: 1C1C1C
@@ -165,23 +159,7 @@ export const LiveData = () => {
                         </Row>
                         <Row>
                             <Col xs={5}>
-                                <Row>
-                                    <Col xs={6} style={{}}>
-                                        <RPMIndicator
-                                            x={200}
-                                            y={120}
-                                            rpm={
-                                                carTelemetryData[
-                                                    carTelemetryData.length - 1
-                                                ].EngineRPM
-                                            }
-                                            gear={
-                                                carTelemetryData[
-                                                    carTelemetryData.length - 1
-                                                ].Gear
-                                            }
-                                        />
-                                    </Col>
+                                <Row style={{ marginLeft: "3%" }}>
                                     <Col xs={6}>
                                         <div className="speed-live-data-container">
                                             <SpeedChart
@@ -205,6 +183,22 @@ export const LiveData = () => {
                                                 }
                                             />{" "}
                                         </div>
+                                    </Col>
+                                    <Col xs={6} style={{}}>
+                                        <RPMIndicator
+                                            x={200}
+                                            y={120}
+                                            rpm={
+                                                carTelemetryData[
+                                                    carTelemetryData.length - 1
+                                                ].EngineRPM
+                                            }
+                                            gear={
+                                                carTelemetryData[
+                                                    carTelemetryData.length - 1
+                                                ].Gear
+                                            }
+                                        />
                                     </Col>
                                 </Row>
                             </Col>
@@ -268,15 +262,29 @@ export const LiveData = () => {
                                 >
                                     <Col xs={6}>
                                         <div className="lap-info-data-container">
+                                            {/* {console.log(lapData)} */}
+                                            {/* {lapData.length >= 1 && (
+                                            <LapDetailsTracker
+                                                incomingData={
+                                                    lapData[lapData.length - 1]
+                                                }
+                                            />
+                                        )} */}
                                             <LiveBestLapTimes
                                                 lastLap={"1:09:83"}
                                                 sessionBest={"1:10:23"}
+                                                lapData={
+                                                    lapData[lapData.length - 1]
+                                                }
                                             />
                                         </div>
                                     </Col>
                                     <Col xs={6}>
                                         <div className="lap-info-data-container">
-                                            <WeatherInfo value={"sunny"} />
+                                            <WeatherInfo
+                                                weatherCondition={"rain"}
+                                                value={"10 mins"}
+                                            />
                                         </div>
                                     </Col>
                                 </Row>
@@ -292,6 +300,12 @@ export const LiveData = () => {
                                         }
                                     />
                                 )}
+                            </Col>
+                            <Col></Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <RecordingIcon />
                             </Col>
                             <Col></Col>
                         </Row>

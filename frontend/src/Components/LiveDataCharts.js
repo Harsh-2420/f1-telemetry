@@ -15,6 +15,8 @@ import {
     Legend,
     Bar,
 } from "recharts"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSun, faCloudRain } from "@fortawesome/free-solid-svg-icons"
 
 export const SteeringIndicator = ({ value }) => {
     const fillPercentage = Math.min(Math.abs(value) / 100, 1)
@@ -169,18 +171,22 @@ export const FuelChart = ({ value }) => {
     )
 }
 
-export const WeatherInfo = ({ value }) => {
+export const WeatherInfo = ({ weatherCondition, value }) => {
+    const icon = weatherCondition === "sun" ? faSun : faCloudRain
+    const iconClass = weatherCondition === "sun" ? "weather-icon" : "rain-icon"
+
     return (
         <div className="element-info-container">
             <div className="element-info">Weather Info</div>
-            <div className={`background`}>
+            <div className="background">
+                <FontAwesomeIcon icon={icon} className={iconClass} />
                 <span className="pit-text">{value}</span>
             </div>
         </div>
     )
 }
 
-export const LiveBestLapTimes = ({ lastLap, sessionBest }) => {
+export const LiveBestLapTimes = ({ lastLap, sessionBest, lapData }) => {
     function parseTimeString(timeString) {
         const [minutes, seconds, milliseconds] = timeString
             .split(":")

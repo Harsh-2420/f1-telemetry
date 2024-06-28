@@ -245,6 +245,7 @@ export const TyreChartAlternate = ({ tireData }) => {
         surfaceFrontLeft,
         surfaceFrontRight,
     }
+    // Tyre Wear not yet coming from backend
     latestTire.tyre.wear = {
         surfaceRearLeft,
         surfaceRearRight,

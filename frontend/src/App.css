@@ -88,7 +88,8 @@
 .speed-live-data-container {
     background-color: #282c34;
     border-radius: 12px;
-    width: 150px;
+    width: 250px;
+    height: 70px;
     margin: 10px;
     display: flex;
     justify-content: center; /* Horizontal centering */
@@ -99,6 +100,7 @@
     background-color: #282c34;
     border-radius: 12px;
     width: 250px;
+    height: 70px;
     padding: 10px;
     margin: 10px;
     display: flex;
@@ -202,6 +204,15 @@
     border-radius: 8px;
     padding: 7px 12px;
     margin-top: 10px;
+}
+.weather-icon {
+    font-size: 24px; /* Adjust the size as needed */
+    color: #f5f587; /* Sun icon color */
+}
+
+.rain-icon {
+    font-size: 24px; /* Adjust the size as needed */
+    color: #b0e0e6; /* Rain icon color */
 }
 
 /* ------------------------------------------------ */
