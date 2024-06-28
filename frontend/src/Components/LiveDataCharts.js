@@ -218,6 +218,9 @@ export const LiveBestLapTimes = ({ x, y, lastLap, sessionBest }) => {
     return (
         <div className="element-info-container">
             <div className="element-info">Lap Info</div>
+            {/* <div className="live-data-container-subtitle">
+                Last Lap against Session Best{" "}
+            </div> */}
             <span className="lap-text">{lastLap}</span>
             &nbsp;&nbsp;&nbsp;
             <div className={`pit-info ${differenceClass}`}>
