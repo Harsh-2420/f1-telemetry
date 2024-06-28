@@ -245,7 +245,7 @@ export const TyreInfo = ({ tyreData }) => {
     const actualTyreCompoundsMapping = {
         16: "C5",
         17: "C4",
-        18: "C4",
+        18: "C3",
         19: "C2",
         20: "C1",
         21: "C0",
