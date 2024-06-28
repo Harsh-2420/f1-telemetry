@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react"
+import { Row, Col } from "react-bootstrap"
 import {
     ResponsiveContainer,
     ComposedChart,
@@ -29,7 +30,7 @@ export const SteeringIndicator = ({ value }) => {
             <svg width="200" height="60">
                 <rect
                     x="0"
-                    y="10"
+                    y="20"
                     width="200"
                     height="20"
                     fill="#333"
@@ -39,7 +40,7 @@ export const SteeringIndicator = ({ value }) => {
 
                 <rect
                     x={fillX}
-                    y="10"
+                    y="20"
                     width={fillWidth}
                     height="20"
                     fill="#F6C324"
@@ -49,7 +50,7 @@ export const SteeringIndicator = ({ value }) => {
 
                 <line
                     x1="100"
-                    y1="0"
+                    y1="10"
                     x2="100"
                     y2="40"
                     stroke="white"
@@ -59,7 +60,7 @@ export const SteeringIndicator = ({ value }) => {
 
                 <text
                     x="100"
-                    y="50"
+                    y="60"
                     textAnchor="middle"
                     fill="white"
                     fontSize="15"
@@ -118,177 +119,119 @@ export const NumberChart = ({ value, label }) => {
     )
 }
 
-export const PitChart = ({ x, y, pitRec1, pitRec2 }) => {
+export const PitChart = ({ x, y, pitRec1, pitRec2, currLap }) => {
+    let boxClass
+    if (currLap < pitRec1) {
+        boxClass = "background-neutral"
+    } else if (currLap >= pitRec1 && currLap <= pitRec2) {
+        boxClass = "background-green"
+    } else {
+        boxClass = "background-red"
+    }
+
     return (
-        <svg>
-            <g>
-                <rect
-                    x={x - 80}
-                    y={y + 23}
-                    width={30}
-                    height={30}
-                    fill="#F6C324" //#F6C324 //FFFAA0
-                    stroke="#F6C324"
-                    rx="5"
-                    ry="5"
-                />
-                <text
-                    x={x}
-                    y={y}
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fill="#ffffff" // White color for text
-                    fontSize="18"
-                >
-                    PIT INFO
-                </text>
-                <text
-                    x={x}
-                    y={y + 50}
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fill="#ffffff"
-                >
-                    <tspan fontWeight="400" fontSize="28">
-                        {pitRec1} - {pitRec2}
-                    </tspan>
-                </text>
-            </g>
-        </svg>
+        <div className="element-info-container">
+            <div className="element-info">Pit Info</div>
+            <span className="pit-text">{currLap}</span>
+            <div className={`pit-info ${boxClass}`}>
+                <span className="text">
+                    {pitRec1} - {pitRec2}
+                </span>
+            </div>
+        </div>
     )
 }
 export const FuelChart = ({ x, y, value }) => {
+    let backgroundClass
+    if (value > 0) {
+        backgroundClass = "background-positive"
+    } else if (value < 0) {
+        backgroundClass = "background-negative"
+    } else {
+        backgroundClass = "background-zero"
+    }
+
     return (
-        <svg>
-            <g>
-                <rect
-                    x={x - 80}
-                    y={y + 23}
-                    width={30}
-                    height={30}
-                    fill="#F6C324" //#F6C324 //FFFAA0
-                    stroke="#F6C324"
-                    rx="5"
-                    ry="5"
-                />
-                <text
-                    x={x}
-                    y={y}
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fill="#ffffff" // White color for text
-                    fontSize="18"
-                >
-                    FUEL INFO
-                </text>
-                <text
-                    x={x + 15}
-                    y={y + 45}
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fill="#ffffff"
-                >
+        <div className="element-info-container">
+            <div className="element-info">Fuel Info</div>
+            <div className={`background ${backgroundClass}`}>
+                <span className="text">
                     {value > 0 ? (
-                        <tspan fontWeight="400" fontSize="20" fill="#69A84C">
-                            +{value.toFixed(2)} Laps
-                        </tspan>
+                        <span>&#9650; {value.toFixed(2)} Laps</span>
                     ) : value < 0 ? (
-                        <tspan fontWeight="400" fontSize="20" fill="#F65A24">
-                            {value.toFixed(2)} Laps
-                        </tspan>
+                        <span>&#9660; {value.toFixed(2)} Laps</span>
                     ) : (
-                        <tspan fontWeight="400" fontSize="20" fill="white">
-                            {value.toFixed(2)} Laps
-                        </tspan>
+                        <span>&#8211; {value.toFixed(2)} Laps</span>
                     )}
-                </text>
-            </g>
-        </svg>
+                </span>
+            </div>
+        </div>
     )
 }
-export const LiveBestLapTimes = ({ x, y, personalBest, sessionBest }) => {
+
+export const LiveBestLapTimes = ({ x, y, lastLap, sessionBest }) => {
+    function parseTimeString(timeString) {
+        const [minutes, seconds, milliseconds] = timeString
+            .split(":")
+            .map(Number)
+        return minutes * 60 * 1000 + seconds * 1000 + milliseconds
+    }
+
+    function formatMilliseconds(milliseconds) {
+        const minutes = Math.floor(milliseconds / (60 * 1000))
+        milliseconds %= 60 * 1000
+        const seconds = Math.floor(milliseconds / 1000)
+        milliseconds %= 1000
+        return `${minutes}:${seconds.toString().padStart(2, "0")}:${milliseconds
+            .toString()
+            .padStart(3, "0")}`
+    }
+
+    function calculateDifferenceClass(sessionBest, lastLap) {
+        const sessionBestMs = parseTimeString(sessionBest)
+        const lastLapMs = parseTimeString(lastLap)
+        const differenceMs = sessionBestMs - lastLapMs
+
+        const differenceFormatted = formatMilliseconds(Math.abs(differenceMs))
+        if (differenceMs > 0) {
+            return {
+                class: "background-negative",
+                difference: `- ${differenceFormatted}`,
+            }
+        } else if (differenceMs < 0) {
+            return {
+                class: "background-positive",
+                difference: `+ ${differenceFormatted}`,
+            }
+        } else {
+            return {
+                class: "background-neutral",
+                difference: `± ${differenceFormatted}`,
+            }
+        }
+    }
+    const { class: differenceClass, difference } = calculateDifferenceClass(
+        sessionBest,
+        lastLap
+    )
+
     return (
-        <svg>
-            <g>
-                <rect
-                    x={x - 80}
-                    y={y + 40}
-                    width={30}
-                    height={30}
-                    fill="#F6C324" //#F6C324 //FFFAA0
-                    stroke="#F6C324"
-                    rx="5"
-                    ry="5"
-                />
-                <text
-                    x={x}
-                    y={y}
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fill="#ffffff" // White color for text
-                    fontSize="18"
-                >
-                    LAP INFO
-                </text>
-                <text
-                    x={x}
-                    y={y + 40}
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fill="#ffffff"
-                    fontWeight="400"
-                    fontSize="22"
-                >
-                    {personalBest}
-                </text>
-                <text
-                    x={x}
-                    y={y + 80}
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fill="#ffffff"
-                    fontWeight="400"
-                    fontSize="22"
-                >
-                    {sessionBest}
-                </text>
-            </g>
-        </svg>
+        <div className="element-info-container">
+            <div className="element-info">Lap Info</div>
+            <span className="lap-text">{lastLap}</span>
+            &nbsp;&nbsp;&nbsp;
+            <div className={`pit-info ${differenceClass}`}>
+                <span className="text">{difference}</span>
+            </div>
+        </div>
     )
 }
 
 export const SpeedChart = ({ x, y, value }) => {
     return (
-        <svg
-            style={{
-                // border: "1px solid red",
-                height: "50%",
-            }}
-        >
-            <g>
-                <text
-                    x={x}
-                    y={y}
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fill="#ffffff"
-                >
-                    <tspan fontWeight="400" fontSize="28">
-                        {value}
-                    </tspan>
-                </text>
-                <text
-                    x={x + 50}
-                    y={y - 5}
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fill="#ffffff" // White color for text
-                    fontSize="15"
-                >
-                    kmph
-                </text>
-            </g>
-        </svg>
+        <div className="element-info-container">
+            <div className={`element-info`}>{value} kmph</div>
+        </div>
     )
 }
 

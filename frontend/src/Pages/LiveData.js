@@ -161,6 +161,7 @@ export const LiveData = () => {
                                     >
                                         <Col xs={6} style={{}}>
                                             {/* <div className="live-data-component-container"> */}
+
                                             <RPMIndicator
                                                 x={200}
                                                 y={120}
@@ -181,24 +182,29 @@ export const LiveData = () => {
                                         </Col>
                                         <Col xs={6}>
                                             {/* <div className="live-data-component-container"> */}
-                                            <SpeedChart
-                                                x={80}
-                                                y={60}
-                                                value={
-                                                    carTelemetryData[
-                                                        carTelemetryData.length -
-                                                            1
-                                                    ].Speed
-                                                }
-                                            />
-                                            <SteeringIndicator
-                                                value={
-                                                    carTelemetryData[
-                                                        carTelemetryData.length -
-                                                            1
-                                                    ].Steer
-                                                }
-                                            />
+                                            <div className="speed-live-data-container">
+                                                <SpeedChart
+                                                    x={80}
+                                                    y={60}
+                                                    value={
+                                                        carTelemetryData[
+                                                            carTelemetryData.length -
+                                                                1
+                                                        ].Speed
+                                                    }
+                                                />
+                                            </div>
+                                            <div className="steering-live-data-container">
+                                                <SteeringIndicator
+                                                    value={
+                                                        carTelemetryData[
+                                                            carTelemetryData.length -
+                                                                1
+                                                        ].Steer
+                                                    }
+                                                />{" "}
+                                            </div>
+
                                             {/* </div> */}
                                         </Col>
                                     </Row>
@@ -249,34 +255,43 @@ export const LiveData = () => {
                                 />
                                 <Row>
                                     <Col xs={4}>
-                                        <PitChart
-                                            x={100}
-                                            y={10}
-                                            pitRec1={9}
-                                            pitRec2={12}
-                                        />
+                                        <div className="live-data-container">
+                                            <PitChart
+                                                x={100}
+                                                y={50}
+                                                pitRec1={9}
+                                                pitRec2={12}
+                                                currLap={7}
+                                            />
+                                        </div>
                                     </Col>
                                     <Col xs={4}>
-                                        <FuelChart
-                                            x={100}
-                                            y={10}
-                                            value={
-                                                carStatusData.length > 0
-                                                    ? carStatusData[
-                                                          carStatusData.length -
-                                                              1
-                                                      ].FuelRemainingLaps
-                                                    : 0
-                                            }
-                                        />
+                                        <div className="live-data-container">
+                                            <FuelChart
+                                                x={100}
+                                                y={50}
+                                                value={
+                                                    carStatusData.length > 0
+                                                        ? carStatusData[
+                                                              carStatusData.length -
+                                                                  1
+                                                          ].FuelRemainingLaps
+                                                        : 0
+                                                }
+                                            />
+                                        </div>
                                     </Col>
+                                </Row>
+                                <Row>
                                     <Col xs={4}>
-                                        <LiveBestLapTimes
-                                            x={100}
-                                            y={10}
-                                            personalBest={"1:09:23"}
-                                            sessionBest={"1:09:23"}
-                                        />
+                                        <div className="lap-info-data-container">
+                                            <LiveBestLapTimes
+                                                x={100}
+                                                y={50}
+                                                lastLap={"1:09:83"}
+                                                sessionBest={"1:10:23"}
+                                            />
+                                        </div>
                                     </Col>
                                 </Row>
                             </>

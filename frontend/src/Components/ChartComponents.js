@@ -39,7 +39,9 @@ export const Chart = ({
                     }}
                 >
                     <p style={{ margin: 0 }}>{`Distance: ${label}`}</p>
-                    <p style={{ margin: 0 }}>{`Value: ${payload[0].value}`}</p>
+                    <p
+                        style={{ margin: 0 }}
+                    >{`${payload[0].dataKey}: ${payload[0].value}`}</p>
                 </div>
             )
         }
