@@ -1,15 +1,19 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
+	"net"
 	"os"
 	"reflect"
 	"sync"
+	"time"
 )
 
 const (
 	PACKET_STORE_SIZE uint32 = 4
+	REPLAY_FRAME_RATE uint16 = 20
 )
 
 type SavedPacket[T any] struct {
@@ -38,6 +42,8 @@ type PacketStore struct {
 
 	// Socket Server
 	WSS *WebsocketServer `json:"-"`
+
+	UDPClientRequestChannel chan<- UDPClientTarget
 }
 
 func (store *PacketStore) Init(wss *WebsocketServer) {
@@ -47,6 +53,17 @@ func (store *PacketStore) Init(wss *WebsocketServer) {
 	store.F1CarStatusDataPackets = make([]SavedPacket[F1CarStatusDataPacket], 0, PACKET_STORE_SIZE)
 	store.RWLock = sync.RWMutex{}
 	store.WSS = wss
+}
+
+func (store *PacketStore) Reset() {
+	store.F1CarTelemetryDataPackets = make([]SavedPacket[F1CarTelemetryDataPacket], 0, PACKET_STORE_SIZE)
+	store.F1CarMotionDataPackets = make([]SavedPacket[F1CarMotionDataPacket], 0, PACKET_STORE_SIZE)
+	store.F1LapDataPackets = make([]SavedPacket[F1LapDataPacket], 0, PACKET_STORE_SIZE)
+	store.F1CarStatusDataPackets = make([]SavedPacket[F1CarStatusDataPacket], 0, PACKET_STORE_SIZE)
+}
+
+func (store *PacketStore) SetUDPClientRequestChannel(c chan<- UDPClientTarget) {
+	store.UDPClientRequestChannel = c
 }
 
 func SavePacket[T F1Packet](store *PacketStore, packet T) {
@@ -81,7 +98,14 @@ func RecordSavedPacket[T any](store *PacketStore, packet *SavedPacket[T]) {
 		return
 	}
 
-	err := binary.Write(store.RecordingFile, binary.LittleEndian, packet.Header)
+	err := binary.Write(store.RecordingFile, binary.LittleEndian, packet.Header.PacketId)
+	if err != nil {
+		Log.Println("Error writing packet to recording file")
+		Log.Println(err.Error())
+		return
+	}
+
+	err = binary.Write(store.RecordingFile, binary.LittleEndian, packet.Header)
 	if err != nil {
 		Log.Println("Error writing packet to recording file")
 		Log.Println(err.Error())
@@ -157,4 +181,54 @@ func (config *RecordingConfig) IsRecordingPacket(packetID uint8) bool {
 	}
 
 	return (config.PacketsToRecord & (1 << packetID)) != 0
+}
+
+func (store *PacketStore) StartReplay(filename string) {
+	store.RWLock.Lock()
+	defer store.RWLock.Unlock()
+
+	store.Reset()
+
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		Log.Fatalf("Failed to open recording file - %s\n", err)
+	}
+
+	reader := bytes.NewReader(data)
+	store.UDPClientRequestChannel <- UDPClientTarget_Loopback
+
+	loopbackConn, err := net.Dial("udp4", fmt.Sprintf(":%d", REPLAY_DATA_PORT))
+	if err != nil {
+		Log.Fatalf("Failed to open loopback write connection for replay - %s\n", err)
+	}
+	defer loopbackConn.Close()
+
+	for reader.Len() > 0 {
+		// packetID, err := reader.ReadByte()
+		// if err != nil {
+		// 	Log.Fatalf("Error reading recording - %s\n", err)
+		// }
+
+		// if packetID < PacketID_Motion || packetID >= PacketID_Count {
+		// 	Log.Fatalf("Error reading recording - invalid packet id %d", packetID)
+		// }
+
+		writeBuffer := make([]byte, UDP_MAX_PACKET_SIZE)
+		_, err = reader.Read(writeBuffer)
+		if err != nil {
+			Log.Fatalf("Error reading from recording - %s\n", err)
+		}
+
+		tries := 0
+		for tries < 3 {
+			_, err = loopbackConn.Write(writeBuffer)
+			if err != nil {
+				tries += 1
+			} else {
+				break
+			}
+		}
+
+		time.Sleep(time.Millisecond * 50)
+	}
 }

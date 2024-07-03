@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -14,7 +15,7 @@ func main() {
 	InitLogger(LOG_TO_FILE)
 	Log = GetLogger()
 
-	port := ":20777"
+	port := fmt.Sprintf(":%d", F1_TELEMETRY_DATA_PORT)
 
 	// Resolve the UDP address
 	udpAddr, err := net.ResolveUDPAddr("udp", port)
@@ -41,8 +42,9 @@ func main() {
 
 	packetStore := PacketStore{}
 	packetStore.Init(&wss)
+	packetStore.SetUDPClientRequestChannel(f1UdpClient.SwitchSourceRequest)
 
-	go RunAPIServer(&wss)
+	go RunAPIServer(&wss, &packetStore)
 
 	for {
 		err := f1UdpClient.Poll(&packetStore)
