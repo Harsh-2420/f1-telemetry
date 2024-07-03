@@ -5,9 +5,13 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"net/netip"
 	"reflect"
+	"time"
 )
 
+const REPLAY_DATA_PORT = 9000
+const F1_TELEMETRY_DATA_PORT = 20777
 const UDP_MAX_PACKET_SIZE = 4096
 const PROCESSING_BUFFER_SIZE = UDP_MAX_PACKET_SIZE * 8
 const F1_PACKET_HEADER_PACKED_SIZE = 29
@@ -249,10 +253,22 @@ type F1CarDamageDataPacket struct {
 	CarDamageData  [22]F1CarDamageData
 }
 
+type UDPClientTarget uint8
+
+const (
+	UDPClientTarget_LAN UDPClientTarget = iota
+	UDPClientTarget_Loopback
+)
+
 type F1UdpClient struct {
-	conn             *net.UDPConn
-	readbuffer       []byte
-	processingbuffer []byte
+	conn       *net.UDPConn // connection used to get realtime data from game
+	replayConn *net.UDPConn // connection used exclusively for replays
+	activeConn *net.UDPConn // the connection to listen to
+
+	readbuffer          []byte
+	processingbuffer    []byte
+	SwitchSourceRequest chan UDPClientTarget
+	targetSource        UDPClientTarget
 }
 
 func (p F1CarMotionDataPacket) Header() *F1PacketHeader {
@@ -295,8 +311,55 @@ func ParseStruct(reader *bytes.Reader, dstStruct any) bool {
 
 func (cl *F1UdpClient) Init(conn *net.UDPConn) {
 	cl.conn = conn
+	cl.activeConn = conn
 	cl.readbuffer = make([]byte, UDP_MAX_PACKET_SIZE)
 	cl.processingbuffer = make([]byte, 0, PROCESSING_BUFFER_SIZE) // allow queuing of upto 8 packets in case processing takes time
+	cl.SwitchSourceRequest = make(chan UDPClientTarget)
+	cl.targetSource = UDPClientTarget_LAN
+}
+
+func (cl *F1UdpClient) InitLoopbackConnectionForReplay() {
+	if cl.replayConn != nil {
+		cl.replayConn.Close()
+	}
+
+	addr := fmt.Sprintf(":%d", REPLAY_DATA_PORT)
+	udpAddr, err := net.ResolveUDPAddr("udp", addr)
+	if err != nil {
+		Log.Fatalf("Failed to resolve loopback address for replay - %s\n", err)
+		return
+	}
+
+	cl.replayConn, err = net.ListenUDP("udp", udpAddr)
+	if err != nil {
+		Log.Fatalf("Error listening on UDP: %s", err)
+	}
+}
+
+func (cl *F1UdpClient) HandleSourceSwitch(newSource UDPClientTarget) {
+	if newSource == cl.targetSource {
+		return
+	}
+
+	Log.Printf("F1UdpClient: Switching source to %d\n", newSource)
+
+	cl.ResetProcessingBuf()
+	cl.targetSource = newSource
+
+	switch newSource {
+	case UDPClientTarget_Loopback:
+		cl.InitLoopbackConnectionForReplay()
+		cl.activeConn = cl.replayConn
+	case UDPClientTarget_LAN:
+		cl.replayConn.Close()
+		cl.activeConn = cl.conn
+	default:
+		panic("Invalid target for source switch")
+	}
+}
+
+func (cl *F1UdpClient) ResetProcessingBuf() {
+	cl.processingbuffer = make([]byte, 0, PROCESSING_BUFFER_SIZE)
 }
 
 func (cl *F1UdpClient) PacketProcessCleanup(processedPacketHeader *F1PacketHeader) {
@@ -309,10 +372,32 @@ func (cl *F1UdpClient) NeedToWaitForMoreData(packetHeader *F1PacketHeader) bool 
 
 func (cl *F1UdpClient) Poll(packetStore *PacketStore) error {
 	var packetHeader F1PacketHeader
-	n, _, err := cl.conn.ReadFromUDP(cl.readbuffer)
+	var n int
+	var err error = nil
+	var addr netip.AddrPort
+	cl.conn.SetReadDeadline(time.Now().Add(time.Duration(time.Second * 1)))
+
+	n, addr, err = cl.activeConn.ReadFromUDPAddrPort(cl.readbuffer)
 	if err != nil {
+		// timeout, check for requests on channel
+		if e, ok := err.(net.Error); ok && e.Timeout() {
+			select {
+			case target := <-cl.SwitchSourceRequest:
+				cl.HandleSourceSwitch(target)
+				return nil
+			default:
+				return nil
+			}
+		}
+
 		Log.Println("Error reading from UDP:", err)
 		return err
+	}
+
+	if cl.targetSource == UDPClientTarget_Loopback {
+		if addr.Port() == F1_TELEMETRY_DATA_PORT {
+			return nil // drop the packet
+		}
 	}
 
 	cl.processingbuffer = append(cl.processingbuffer, cl.readbuffer[:n]...)
