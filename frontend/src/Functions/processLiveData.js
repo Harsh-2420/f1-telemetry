@@ -1,81 +1,85 @@
+var backendWS = null;
 
 export class Queue {
-    /**
-     * @param {{ packetID: number, packetName: string }} dataSource
-     * @param {function} newDataCallback 
-     */
-    constructor(dataSource, newDataCallback) {
-        this.items = []
-        this.enqueuedFrameNums = new Set()
-        this.dataSource = dataSource
-        this.newDataCallback = newDataCallback
+  /**
+   * @param {{ packetID: number, packetName: string }} dataSource
+   * @param {function} newDataCallback
+   */
+  constructor(dataSource, newDataCallback) {
+    this.items = [];
+    this.enqueuedFrameNums = new Set();
+    this.dataSource = dataSource;
+    this.newDataCallback = newDataCallback;
+  }
+
+  setNewDataCallback(callbackFn) {
+    this.newDataCallback = callbackFn;
+    console.log(
+      `Registered new data callback for ${this.dataSource.packetName}`,
+    );
+  }
+
+  enqueue(element) {
+    this.items.push(element);
+    this.newDataCallback && this.newDataCallback();
+  }
+
+  dequeue() {
+    if (this.isEmpty()) {
+      return null;
     }
 
-    setNewDataCallback(callbackFn)
-    {
-        this.newDataCallback = callbackFn;
-        console.log(`Registered new data callback for ${this.dataSource.packetName}`);
-    }
+    return this.items.shift();
+  }
 
-    enqueue(element) {
-        this.items.push(element)
-        this.newDataCallback && this.newDataCallback();
-    }
+  isEmpty() {
+    return this.items.length === 0;
+  }
 
-    dequeue() {
-        if (this.isEmpty()) {
-            return null
-        }
-
-        return this.items.shift()
-    }
-
-    isEmpty() {
-        return this.items.length === 0
-    }
-
-    reset() {
-        this.items = []
-    }
+  reset() {
+    this.items = [];
+  }
 }
 
 /**
  * @param {Object} packet
  * @param {{ [key: string]: Queue }} dataQueues
  */
-function HandleNewPacket(packet, dataQueues)
-{
-    Object.keys(dataQueues).forEach((key) =>
-    {
-        const queue = dataQueues[key];
-        if (queue.dataSource.packetID === packet.Header.PacketId)
-        {
-            queue.enqueue(packet);
-            return;
-        }
-    });
+function HandleNewPacket(packet, dataQueues) {
+  Object.keys(dataQueues).forEach((key) => {
+    const queue = dataQueues[key];
+    if (queue.dataSource.packetID === packet.Header.PacketId) {
+      queue.enqueue(packet);
+      return;
+    }
+  });
 }
 
 /**
  * @param {{ [key: string]: Queue }} dataQueues
  */
 export async function SubscribeToBackend(dataQueues) {
-    const ws = new WebSocket(`ws://localhost:8000/api/live`);
-    ws.onopen = function (ev) {
-        console.log("Backend connection success");
-    }
+  const ws = new WebSocket(`ws://localhost:8000/api/live`);
+  if (backendWS !== null) {
+    backendWS.close();
+  }
+  backendWS = ws;
 
-    ws.onclose = function (ev) {
-        console.log("Disconnected from backend");
-        console.log(ev.reason);
-    }
+  ws.onopen = function (ev) {
+    console.log("Backend connection success");
+  };
 
-    ws.onerror = function (ev) {
-        console.log("Backend connection error");
-    }
+  ws.onclose = function (ev) {
+    console.log("Disconnected from backend");
+    console.log(ev.reason);
+  };
 
-    ws.onmessage = function (msgEvent) {
-        const packet = JSON.parse(msgEvent.data);
-        HandleNewPacket(packet, dataQueues)
-    }
+  ws.onerror = function (ev) {
+    console.log("Backend connection error");
+  };
+
+  ws.onmessage = function (msgEvent) {
+    const packet = JSON.parse(msgEvent.data);
+    HandleNewPacket(packet, dataQueues);
+  };
 }
