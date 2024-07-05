@@ -159,14 +159,14 @@ export const TotalTelemetryChart = ({
                     <Line
                         type="monotone"
                         dataKey={throttleKey}
-                        stroke="green"
+                        stroke="#77dd77"
                         yAxisId="right"
                         dot={false}
                     />
                     <Line
                         type="monotone"
                         dataKey={brakeKey}
-                        stroke="red"
+                        stroke="#ff6961"
                         yAxisId="left"
                         dot={false}
                     />

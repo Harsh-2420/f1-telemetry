@@ -141,6 +141,7 @@ const calculateGlowColor = (identifier, temperature, tyreCompound) => {
             },
         },
     }
+
     const { blue, white, orange, red } =
         temperatureRanges[tyreCompound][identifier]
     let glowStartColor, glowEndColor
@@ -153,7 +154,7 @@ const calculateGlowColor = (identifier, temperature, tyreCompound) => {
         glowEndColor = "#4da6ff" // Blue
     } else if (temperature >= white[0] && temperature <= white[1]) {
         glowStartColor = "#FFFFFF" // White
-        glowEndColor = "#FFFFFF" // White
+        glowEndColor = "#FFA500" // Orange
     } else if (temperature > orange[0] && temperature <= orange[1]) {
         glowStartColor = "#FFFFFF" // White
         glowEndColor = "#FFA500" // Orange
@@ -165,28 +166,37 @@ const calculateGlowColor = (identifier, temperature, tyreCompound) => {
         glowEndColor = "#FF0000" // Red
     }
 
-    let interpolationParameter
-    if (temperature < 90) {
-        interpolationParameter = Math.max(
-            0,
-            Math.min(1, (temperature - 70) / 20)
-        )
-    } else if (temperature <= 110) {
-        interpolationParameter = Math.max(
-            0,
-            Math.min(1, (temperature - 90) / 20)
-        )
-    } else if (temperature <= 120) {
-        interpolationParameter = Math.max(
-            0,
-            Math.min(1, (temperature - 110) / 10)
-        )
-    } else {
-        interpolationParameter = Math.max(
-            0,
-            Math.min(1, (temperature - 120) / 30)
-        ) // Adjusted range for 120-150
+    const determineActiveBucket = (buckets) => {
+        for (const key in buckets) {
+            const [low, high] = buckets[key]
+            if (temperature >= low && temperature <= high) {
+                return key
+            }
+        }
     }
+
+    const temperatureFunctionCalcuator = (temperature, activeBucketKey) => {
+        if (activeBucketKey === "blue") {
+            return 2 + (temperature ^ 5)
+        } else if (activeBucketKey === "white") {
+            return ((temperature - 1.5) ^ 5) + 4
+        } else if (activeBucketKey === "orange") {
+            return ((temperature - 3.5) ^ 5) + 8
+        } else {
+            return ((temperature - 5.5) ^ 5) + 12
+        }
+    }
+
+    let interpolationParameter = 0
+    // console.log(temperatureRanges)
+    const buckets = temperatureRanges[tyreCompound][identifier]
+    const activeBucketKey = determineActiveBucket(buckets)
+    // const [low, high] = buckets[activeBucketKey]
+    console.log(
+        temperature,
+        activeBucketKey,
+        temperatureFunctionCalcuator(temperature, activeBucketKey)
+    )
 
     return chroma
         .mix(glowStartColor, glowEndColor, interpolationParameter, "lab")
