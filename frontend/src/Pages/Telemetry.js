@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react"
-import { Row, Col, Button } from "react-bootstrap"
+import { Row, Col, Button, Navbar, Nav } from "react-bootstrap"
 import F1 from "../images/F1.png"
 import F123 from "../images/f123-light.png"
 // import { DropdownComponent } from "../Components/DropdownComponent"
-// import Recording from "../Components/RecordingIcon"
+import Recording from "../Components/RecordingIcon"
 // import MultipleSelectChip from "../Components/DropdownComponent"
 import {
     Chart,
@@ -51,28 +51,40 @@ export const Telemetry = () => {
                 position: "relative",
             }}
         >
-            <div style={{ padding: "30px" }}>
-                <Row className="align-items-center" style={{}}>
-                    <Col style={{ display: "flex", alignItems: "center" }}>
-                        <img
-                            src={F123}
-                            style={{ width: "200px", marginRight: "10px" }}
-                        />
-                        <span
-                            style={{
-                                fontWeight: "bold",
-                                letterSpacing: "1.5px",
-                            }}
-                        >
-                            &nbsp; Telemetry Analysis
-                        </span>
-                    </Col>
-
-                    <Col
+            <Navbar
+                expand="lg"
+                style={{
+                    padding: "10px",
+                    height: "80px",
+                    backgroundColor: "#171819", // 282c34
+                    borderBottomLeftRadius: "14px",
+                    borderBottomRightRadius: "14px",
+                    borderRadius: "14px",
+                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                    marginBottom: "10px",
+                }}
+            >
+                <Navbar.Brand
+                    href="#"
+                    style={{ display: "flex", alignItems: "center" }}
+                >
+                    <img
+                        src={F123}
+                        alt="f1-logo"
+                        style={{ width: "150px", marginRight: "10px" }}
+                    />
+                </Navbar.Brand>
+                <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                <Navbar.Collapse id="basic-navbar-nav">
+                    <Nav
+                        className="ml-auto"
                         style={{
-                            textAlign: "right",
+                            width: "100%",
+                            justifyContent: "flex-end",
+                            alignItems: "center",
                         }}
                     >
+                        <Recording />
                         <Button
                             id="live-data-toggle"
                             onClick={toggleCombinedTelemetry}
@@ -80,23 +92,16 @@ export const Telemetry = () => {
                                 fontWeight: "bold",
                                 letterSpacing: "1px",
                                 fontSize: "14px",
+                                marginLeft: "10px", // Added margin to separate the button from the Recording component
                             }}
                         >
-                            {/* {combinedTelemetryToggle ? "LIVE DATA" : "ANALYSIS"} */}
                             {combinedTelemetryToggle ? "Live Data" : "Analysis"}
                         </Button>
-                    </Col>
-                </Row>
-            </div>
-            {combinedTelemetryToggle ? (
-                <>
-                    <LiveData />
-                </>
-            ) : (
-                <>
-                    <Analysis />
-                </>
-            )}
+                    </Nav>
+                </Navbar.Collapse>
+            </Navbar>
+
+            {combinedTelemetryToggle ? <LiveData /> : <Analysis />}
         </div>
     )
 }

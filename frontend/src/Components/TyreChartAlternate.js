@@ -30,177 +30,189 @@ const calculateGlowColor = (identifier, temperature, tyreCompound) => {
     const temperatureRanges = {
         C0: {
             surface: {
-                blue: [0, 70],
-                white: [70, 100],
-                orange: [100, 120],
-                red: [120, Infinity],
+                blue_blue: [0, 70],
+                blue_white: [70, 80],
+                white_white: [80, 90],
+                white_orange: [90, 100],
+                orange_orange: [100, 110],
+                orange_red: [110, 120],
+                red_red: [120, Infinity],
             },
             inner: {
-                blue: [0, 80],
-                white: [80, 110],
-                orange: [110, 130],
-                red: [130, Infinity],
+                blue_blue: [0, 70],
+                blue_white: [70, 80],
+                white_white: [80, 95],
+                white_orange: [95, 110],
+                orange_orange: [110, 120],
+                orange_red: [120, 130],
+                red_red: [130, Infinity],
             },
         },
         C1: {
             surface: {
-                blue: [0, 70],
-                white: [70, 100],
-                orange: [100, 120],
-                red: [120, Infinity],
+                blue_blue: [0, 60],
+                blue_white: [60, 70],
+                white_white: [70, 85],
+                white_orange: [85, 100],
+                orange_orange: [100, 110],
+                orange_red: [110, 120],
+                red_red: [120, Infinity],
             },
             inner: {
-                blue: [0, 80],
-                white: [80, 110],
-                orange: [110, 130],
-                red: [130, Infinity],
+                blue_blue: [0, 70],
+                blue_white: [70, 80],
+                white_white: [80, 95],
+                white_orange: [95, 110],
+                orange_orange: [110, 120],
+                orange_red: [120, 130],
+                red_red: [130, Infinity],
             },
         },
         C2: {
             surface: {
-                blue: [0, 70],
-                white: [70, 120],
-                orange: [120, 140],
-                red: [140, Infinity],
+                blue_blue: [0, 60],
+                blue_white: [60, 70],
+                white_white: [70, 95],
+                white_orange: [95, 120],
+                orange_orange: [120, 130],
+                orange_red: [130, 140],
+                red_red: [140, Infinity],
             },
             inner: {
-                blue: [0, 80],
-                white: [80, 110],
-                orange: [110, 120],
-                red: [120, Infinity],
+                blue_blue: [0, 70],
+                blue_white: [70, 80],
+                white_white: [80, 95],
+                white_orange: [95, 110],
+                orange_orange: [110, 115],
+                orange_red: [115, 120],
+                red_red: [120, Infinity],
             },
         },
         C3: {
             surface: {
-                blue: [0, 70],
-                white: [70, 100],
-                orange: [100, 120],
-                red: [120, Infinity],
+                blue_blue: [0, 60],
+                blue_white: [60, 70],
+                white_white: [70, 85],
+                white_orange: [85, 100],
+                orange_orange: [100, 110],
+                orange_red: [110, 120],
+                red_red: [120, Infinity],
             },
             inner: {
-                blue: [0, 80],
-                white: [80, 110],
-                orange: [110, 130],
-                red: [130, Infinity],
+                blue_blue: [0, 70],
+                blue_white: [70, 80],
+                white_white: [80, 95],
+                white_orange: [95, 110],
+                orange_orange: [110, 120],
+                orange_red: [120, 130],
+                red_red: [130, Infinity],
             },
         },
         C4: {
             surface: {
-                blue: [0, 70],
-                white: [70, 100],
-                orange: [100, 120],
-                red: [120, Infinity],
+                blue_blue: [0, 60],
+                blue_white: [60, 70],
+                white_white: [70, 110],
+                white_orange: [110, 120],
+                orange_orange: [120, 130],
+                orange_red: [130, 140],
+                red_red: [120, Infinity],
             },
             inner: {
-                blue: [0, 80],
-                white: [80, 110],
-                orange: [110, 130],
-                red: [130, Infinity],
+                blue_blue: [0, 60],
+                blue_white: [60, 70],
+                white_white: [70, 110],
+                white_orange: [110, 120],
+                orange_orange: [120, 130],
+                orange_red: [130, 140],
+                red_red: [120, Infinity],
             },
         },
         C5: {
             surface: {
-                blue: [0, 70],
-                white: [70, 100],
-                orange: [100, 120],
-                red: [120, Infinity],
+                blue_blue: [0, 60],
+                blue_white: [60, 70],
+                white_white: [70, 85],
+                white_orange: [85, 100],
+                orange_orange: [100, 110],
+                orange_red: [110, 120],
+                red_red: [120, Infinity],
             },
             inner: {
-                blue: [0, 80],
-                white: [80, 110],
-                orange: [110, 130],
-                red: [130, Infinity],
+                blue_blue: [0, 70],
+                blue_white: [70, 80],
+                white_white: [80, 95],
+                white_orange: [95, 110],
+                orange_orange: [110, 120],
+                orange_red: [120, 130],
+                red_red: [130, Infinity],
             },
         },
         inter: {
             surface: {
-                blue: [0, 60],
-                white: [60, 80],
-                orange: [80, 100],
-                red: [100, Infinity],
+                blue_blue: [0, 50],
+                blue_white: [50, 60],
+                white_white: [60, 70],
+                white_orange: [70, 80],
+                orange_orange: [80, 90],
+                orange_red: [90, 100],
+                red_red: [100, Infinity],
             },
             inner: {
-                blue: [0, 70],
-                white: [70, 90],
-                orange: [90, 110],
-                red: [110, Infinity],
+                blue_blue: [0, 60],
+                blue_white: [60, 70],
+                white_white: [70, 80],
+                white_orange: [80, 90],
+                orange_orange: [90, 100],
+                orange_red: [100, 110],
+                red_red: [110, Infinity],
             },
         },
         wet: {
             surface: {
-                blue: [0, 50],
-                white: [50, 70],
-                orange: [70, 90],
-                red: [90, Infinity],
+                blue_blue: [0, 40],
+                blue_white: [40, 50],
+                white_white: [50, 60],
+                white_orange: [60, 70],
+                orange_orange: [70, 80],
+                orange_red: [80, 90],
+                red_red: [90, Infinity],
             },
             inner: {
-                blue: [0, 60],
-                white: [60, 80],
-                orange: [80, 100],
-                red: [100, Infinity],
+                blue_blue: [0, 50],
+                blue_white: [50, 60],
+                white_white: [60, 70],
+                white_orange: [70, 80],
+                orange_orange: [80, 90],
+                orange_red: [90, 100],
+                red_red: [100, Infinity],
             },
         },
     }
 
-    const { blue, white, orange, red } =
-        temperatureRanges[tyreCompound][identifier]
-    let glowStartColor, glowEndColor
+    function mapValueToColor(value, colorRanges, customColors) {
+        let color
 
-    if (temperature >= blue[0] && temperature < blue[1]) {
-        glowStartColor = "#4da6ff" // Blue
-        glowEndColor = "#FFFFFF" // White
-    } else if (temperature <= blue[0]) {
-        glowStartColor = "#4da6ff" // Blue
-        glowEndColor = "#4da6ff" // Blue
-    } else if (temperature >= white[0] && temperature <= white[1]) {
-        glowStartColor = "#FFFFFF" // White
-        glowEndColor = "#FFA500" // Orange
-    } else if (temperature > orange[0] && temperature <= orange[1]) {
-        glowStartColor = "#FFFFFF" // White
-        glowEndColor = "#FFA500" // Orange
-    } else if (temperature > red[0] && temperature <= red[1]) {
-        glowStartColor = "#FFA500" // Orange
-        glowEndColor = "#FF0000" // Red
-    } else {
-        glowStartColor = "#FF0000" // Red
-        glowEndColor = "#FF0000" // Red
-    }
-
-    const determineActiveBucket = (buckets) => {
-        for (const key in buckets) {
-            const [low, high] = buckets[key]
-            if (temperature >= low && temperature <= high) {
-                return key
+        Object.entries(colorRanges).forEach(([key, [min, max]]) => {
+            if (value >= min && value < max) {
+                const ratio = (value - min) / (max - min)
+                const startColor = customColors[key.split("_")[0]]
+                const endColor = customColors[key.split("_")[1]]
+                color = chroma.mix(startColor, endColor, ratio, "lab").hex()
             }
-        }
+        })
+
+        return color
     }
-
-    const temperatureFunctionCalcuator = (temperature, activeBucketKey) => {
-        if (activeBucketKey === "blue") {
-            return 2 + (temperature ^ 5)
-        } else if (activeBucketKey === "white") {
-            return ((temperature - 1.5) ^ 5) + 4
-        } else if (activeBucketKey === "orange") {
-            return ((temperature - 3.5) ^ 5) + 8
-        } else {
-            return ((temperature - 5.5) ^ 5) + 12
-        }
+    const customColors = {
+        blue: "#4da6ff",
+        white: "#ffffff",
+        orange: "#FFA500",
+        red: "#ff0000",
     }
-
-    let interpolationParameter = 0
-    // console.log(temperatureRanges)
-    const buckets = temperatureRanges[tyreCompound][identifier]
-    const activeBucketKey = determineActiveBucket(buckets)
-    // const [low, high] = buckets[activeBucketKey]
-    console.log(
-        temperature,
-        activeBucketKey,
-        temperatureFunctionCalcuator(temperature, activeBucketKey)
-    )
-
-    return chroma
-        .mix(glowStartColor, glowEndColor, interpolationParameter, "lab")
-        .hex()
+    const colorRanges = temperatureRanges[tyreCompound][identifier]
+    const chromaColor = mapValueToColor(temperature, colorRanges, customColors)
+    return chromaColor
 }
 
 /**
@@ -273,7 +285,15 @@ export const TyreChartAlternate = ({ tireData }) => {
     // Render tire shapes for each tire
     return (
         <>
-            <svg width="600" height="400">
+            <svg
+                width="350"
+                height="300"
+                style={
+                    {
+                        // border: "1px solid red"
+                    }
+                }
+            >
                 <g>
                     {/* Front Left tire */}
                     {renderTire(

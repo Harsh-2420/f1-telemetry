@@ -4,11 +4,13 @@ import { Telemetry } from "./Pages/Telemetry"
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" exact element={<Telemetry />} />
-            </Routes>
-        </BrowserRouter>
+        <div className="App">
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" exact element={<Telemetry />} />
+                </Routes>
+            </BrowserRouter>
+        </div>
     )
 }
 

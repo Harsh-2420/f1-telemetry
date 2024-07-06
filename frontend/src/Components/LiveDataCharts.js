@@ -80,7 +80,7 @@ export const NumberChart = ({ value, label }) => {
         <div
             style={{
                 display: "inline-block",
-                backgroundColor: "rgba(64, 64, 64, 0.4)",
+                backgroundColor: "#404040",
                 border: "2px solid grey",
                 borderRadius: "10px",
                 marginBottom: "3%",

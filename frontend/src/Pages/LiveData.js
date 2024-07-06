@@ -130,7 +130,7 @@ export const LiveData = () => {
                         }}
                     >
                         <Row>
-                            <Col xs={8}>
+                            <Col md={8} xs={12}>
                                 <TotalTelemetryChart
                                     data={carTelemetryData}
                                     syncId="telemetryCharts"
@@ -140,7 +140,7 @@ export const LiveData = () => {
                                     titleLabel="Throttle / Brake"
                                 />
                             </Col>
-                            <Col xs={4}>
+                            <Col md={4} xs={12}>
                                 <TyreChartAlternate
                                     tireData={{
                                         telemetryData:
@@ -158,9 +158,9 @@ export const LiveData = () => {
                             </Col>
                         </Row>
                         <Row>
-                            <Col xs={5}>
+                            <Col xs={12} md={5}>
                                 <Row style={{ marginLeft: "3%" }}>
-                                    <Col xs={6}>
+                                    <Col md={6} xs={5}>
                                         <div className="speed-live-data-container">
                                             <SpeedChart
                                                 x={80}
@@ -184,7 +184,7 @@ export const LiveData = () => {
                                             />{" "}
                                         </div>
                                     </Col>
-                                    <Col xs={6} style={{}}>
+                                    <Col md={6} xs={5} style={{}}>
                                         <RPMIndicator
                                             x={200}
                                             y={120}
@@ -202,7 +202,7 @@ export const LiveData = () => {
                                     </Col>
                                 </Row>
                             </Col>
-                            <Col xs={7}>
+                            <Col xs={12} md={7}>
                                 <Row
                                     style={{
                                         // border: "1px solid red",
@@ -210,7 +210,7 @@ export const LiveData = () => {
                                         marginBottom: "3%",
                                     }}
                                 >
-                                    <Col xs={4}>
+                                    <Col xs={4} md={4}>
                                         <div className="live-data-container">
                                             <PitChart
                                                 pitRec1={9}
@@ -219,7 +219,7 @@ export const LiveData = () => {
                                             />
                                         </div>
                                     </Col>
-                                    <Col xs={4}>
+                                    <Col xs={4} md={4}>
                                         <div className="live-data-container">
                                             <FuelChart
                                                 value={
@@ -233,7 +233,7 @@ export const LiveData = () => {
                                             />
                                         </div>
                                     </Col>
-                                    <Col xs={4}>
+                                    <Col xs={4} md={4}>
                                         <div className="live-data-container">
                                             <TyreInfo
                                                 tyreData={{
@@ -260,7 +260,7 @@ export const LiveData = () => {
                                         marginBottom: "3%",
                                     }}
                                 >
-                                    <Col xs={6}>
+                                    <Col xs={6} md={6}>
                                         <div className="lap-info-data-container">
                                             {/* {console.log(lapData)} */}
                                             {/* {lapData.length >= 1 && (
@@ -279,7 +279,7 @@ export const LiveData = () => {
                                             />
                                         </div>
                                     </Col>
-                                    <Col xs={6}>
+                                    <Col xs={6} md={6}>
                                         <div className="lap-info-data-container">
                                             <WeatherInfo
                                                 weatherCondition={"rain"}
@@ -292,7 +292,7 @@ export const LiveData = () => {
                         </Row>
 
                         <Row>
-                            <Col style={{ marginLeft: "20px" }}>
+                            <Col xs={12} md={12} style={{ marginLeft: "20px" }}>
                                 {lapData.length >= 1 && (
                                     <LapDetailsTracker
                                         incomingData={
@@ -300,12 +300,6 @@ export const LiveData = () => {
                                         }
                                     />
                                 )}
-                            </Col>
-                            <Col></Col>
-                        </Row>
-                        <Row>
-                            <Col>
-                                <RecordingIcon />
                             </Col>
                             <Col></Col>
                         </Row>
