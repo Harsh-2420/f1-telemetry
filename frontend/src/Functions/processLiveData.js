@@ -1,5 +1,3 @@
-var backendWS = null;
-
 export class Queue {
   /**
    * @param {{ packetID: number, packetName: string }} dataSource
@@ -60,10 +58,6 @@ function HandleNewPacket(packet, dataQueues) {
  */
 export async function SubscribeToBackend(dataQueues) {
   const ws = new WebSocket(`ws://localhost:8000/api/live`);
-  if (backendWS !== null) {
-    backendWS.close();
-  }
-  backendWS = ws;
 
   ws.onopen = function (ev) {
     console.log("Backend connection success");

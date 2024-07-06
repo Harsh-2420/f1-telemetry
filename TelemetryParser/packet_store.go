@@ -185,17 +185,17 @@ func (config *RecordingConfig) IsRecordingPacket(packetID uint8) bool {
 
 func (store *PacketStore) StartReplay(filename string) {
 	store.RWLock.Lock()
-	defer store.RWLock.Unlock()
 
 	store.Reset()
+	store.UDPClientRequestChannel <- UDPClientTarget_Loopback
+
+	store.RWLock.Unlock()
 
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		Log.Fatalf("Failed to open recording file - %s\n", err)
 	}
-
 	reader := bytes.NewReader(data)
-	store.UDPClientRequestChannel <- UDPClientTarget_Loopback
 
 	loopbackConn, err := net.Dial("udp4", fmt.Sprintf(":%d", REPLAY_DATA_PORT))
 	if err != nil {
@@ -203,6 +203,7 @@ func (store *PacketStore) StartReplay(filename string) {
 	}
 	defer loopbackConn.Close()
 
+	start := time.Now()
 	for reader.Len() > 0 {
 		// packetID, err := reader.ReadByte()
 		// if err != nil {
@@ -229,6 +230,10 @@ func (store *PacketStore) StartReplay(filename string) {
 			}
 		}
 
-		time.Sleep(time.Millisecond * 50)
+		time.Sleep(time.Millisecond * 48)
 	}
+	end := time.Now()
+
+	Log.Println("Finished streaming replay data")
+	Log.Printf("Took %f seconds to stream replay\n", end.Sub(start).Seconds())
 }
