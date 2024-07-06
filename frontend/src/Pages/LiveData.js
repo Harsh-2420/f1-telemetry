@@ -20,44 +20,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { dummyTelemetryData } from "../Data/telemetryData";
 import { generateRandomTelemetryData } from "../Functions/telemetryUtils";
 import {
-	fetchTelemetryData,
-	Queue,
 	SubscribeToBackend,
+	GetDataQueues
 } from "../Functions/processLiveData";
-
-const PacketBackupCount = 500;
-
-const F1PacketID = {
-	Motion: 0,
-	Session: 1,
-	LapData: 2,
-	Event: 3,
-	Participants: 4,
-	CarSetups: 5,
-	CarTelemetry: 6,
-	CarStatus: 7,
-	FinalClassification: 8,
-	LobbyInfo: 9,
-	CarDamage: 10,
-	SessionHistory: 11,
-	TyreSets: 12,
-	MotionEx: 13,
-};
-
-const dataQueues = {
-	carTelemetryDataQueue: new Queue({
-		packetID: F1PacketID.CarTelemetry,
-		packetName: "CarTelemetryData",
-	}),
-	carStatusDataQueue: new Queue({
-		packetID: F1PacketID.CarStatus,
-		packetName: "CarStatusData",
-	}),
-	lapDataQueue: new Queue({
-		packetID: F1PacketID.LapData,
-		packetName: "LapData",
-	}),
-};
+import { PacketBackupCount } from "../common";
 
 /**
  * @param {Queue} queue
@@ -102,6 +68,9 @@ export const LiveData = () => {
 	};
 
 	useEffect(() => {
+
+    const dataQueues = GetDataQueues();
+
 		dataQueues.carTelemetryDataQueue.setNewDataCallback(() =>
 			NewPacket(dataQueues.carTelemetryDataQueue, setCarTelemetryData),
 		);

@@ -1,42 +1,24 @@
-export class Queue {
-  /**
-   * @param {{ packetID: number, packetName: string }} dataSource
-   * @param {function} newDataCallback
-   */
-  constructor(dataSource, newDataCallback) {
-    this.items = [];
-    this.enqueuedFrameNums = new Set();
-    this.dataSource = dataSource;
-    this.newDataCallback = newDataCallback;
-  }
+import { Queue, F1PacketID } from "../common";
 
-  setNewDataCallback(callbackFn) {
-    this.newDataCallback = callbackFn;
-    console.log(
-      `Registered new data callback for ${this.dataSource.packetName}`,
-    );
-  }
+var backendWS = null;
 
-  enqueue(element) {
-    this.items.push(element);
-    this.newDataCallback && this.newDataCallback();
-  }
+const dataQueues = {
+	carTelemetryDataQueue: new Queue({
+		packetID: F1PacketID.CarTelemetry,
+		packetName: "CarTelemetryData",
+	}),
+	carStatusDataQueue: new Queue({
+		packetID: F1PacketID.CarStatus,
+		packetName: "CarStatusData",
+	}),
+	lapDataQueue: new Queue({
+		packetID: F1PacketID.LapData,
+		packetName: "LapData",
+	}),
+};
 
-  dequeue() {
-    if (this.isEmpty()) {
-      return null;
-    }
-
-    return this.items.shift();
-  }
-
-  isEmpty() {
-    return this.items.length === 0;
-  }
-
-  reset() {
-    this.items = [];
-  }
+export function GetDataQueues() {
+  return dataQueues;
 }
 
 /**
@@ -57,7 +39,12 @@ function HandleNewPacket(packet, dataQueues) {
  * @param {{ [key: string]: Queue }} dataQueues
  */
 export async function SubscribeToBackend(dataQueues) {
+  if (backendWS !== null) {
+  	return;
+  }
+
   const ws = new WebSocket(`ws://localhost:8000/api/live`);
+  backendWS = ws;
 
   ws.onopen = function (ev) {
     console.log("Backend connection success");
