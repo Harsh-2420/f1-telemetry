@@ -27,7 +27,7 @@ func HandleLiveDataSubscriptionRequest(w http.ResponseWriter, req *http.Request)
 	}
 
 	Log.Printf("%s Subscription successful\n", req.RemoteAddr)
-	websocketServer.SubscribeNewClient(&WebsocketClient{conn, make(chan []byte, CLIENT_NEW_PACKET_CHANNEL_BUFFER_SIZE)})
+	websocketServer.SubscribeNewClient(&WebsocketClient{conn, make(chan []byte, CLIENT_NEW_PACKET_CHANNEL_BUFFER_SIZE), false})
 }
 
 func HandleStopRecordingRequest(w http.ResponseWriter, req *http.Request) {

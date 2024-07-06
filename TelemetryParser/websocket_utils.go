@@ -13,6 +13,7 @@ const CLIENT_NEW_PACKET_CHANNEL_BUFFER_SIZE = 8
 type WebsocketClient struct {
 	Connection *websocket.Conn
 	NewPacket  chan []byte
+	exitFlag   bool
 }
 
 type WebsocketServer struct {
@@ -59,7 +60,17 @@ func (cl *WebsocketClient) Run(wss *WebsocketServer) {
 	defer cl.Connection.Close()
 	defer delete(wss.Clients, cl)
 
+	cl.Connection.SetCloseHandler(func(code int, text string) error {
+		Log.Printf("WSS: Client %s disconnected with code %d (reason: %s)\n", cl.Connection.RemoteAddr().String(), code, text)
+		cl.exitFlag = true
+		return nil
+	})
+
 	for {
+		if cl.exitFlag {
+			break
+		}
+
 		select {
 		case data := <-cl.NewPacket:
 			err := cl.Connection.WriteMessage(websocket.TextMessage, data)

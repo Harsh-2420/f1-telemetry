@@ -344,6 +344,7 @@ func (cl *F1UdpClient) HandleSourceSwitch(newSource UDPClientTarget) {
 	Log.Printf("F1UdpClient: Switching source to %d\n", newSource)
 
 	cl.ResetProcessingBuf()
+	cl.ResetReadBuf()
 	cl.targetSource = newSource
 
 	switch newSource {
@@ -362,6 +363,12 @@ func (cl *F1UdpClient) ResetProcessingBuf() {
 	cl.processingbuffer = make([]byte, 0, PROCESSING_BUFFER_SIZE)
 }
 
+func (cl *F1UdpClient) ResetReadBuf() {
+	for i := 0; i < len(cl.readbuffer); i++ {
+		cl.readbuffer[i] = 0
+	}
+}
+
 func (cl *F1UdpClient) PacketProcessCleanup(processedPacketHeader *F1PacketHeader) {
 	cl.processingbuffer = cl.processingbuffer[PACKET_ID_SIZE_MAP[processedPacketHeader.PacketId]:]
 }
@@ -375,8 +382,8 @@ func (cl *F1UdpClient) Poll(packetStore *PacketStore) error {
 	var n int
 	var err error = nil
 	var addr netip.AddrPort
-	cl.conn.SetReadDeadline(time.Now().Add(time.Duration(time.Second * 1)))
 
+	cl.conn.SetReadDeadline(time.Now().Add(time.Duration(time.Second * 1)))
 	n, addr, err = cl.activeConn.ReadFromUDPAddrPort(cl.readbuffer)
 	if err != nil {
 		// timeout, check for requests on channel
@@ -391,18 +398,20 @@ func (cl *F1UdpClient) Poll(packetStore *PacketStore) error {
 		}
 
 		Log.Println("Error reading from UDP:", err)
-		return err
 	}
 
 	if cl.targetSource == UDPClientTarget_Loopback {
 		if addr.Port() == F1_TELEMETRY_DATA_PORT {
-			return nil // drop the packet
+			panic("Shouldn't recieve data from F1 Game when in replay mode")
+			// cl.ResetReadBuf()
+			// return nil // drop the packet
 		}
 	}
 
 	cl.processingbuffer = append(cl.processingbuffer, cl.readbuffer[:n]...)
 
 	if len(cl.processingbuffer) > F1_PACKET_HEADER_PACKED_SIZE {
+		// Log.Println("Processing new packet")
 		err = nil
 		reader := bytes.NewReader(cl.processingbuffer)
 		packetHeader.Parse(reader)
